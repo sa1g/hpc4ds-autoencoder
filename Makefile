@@ -53,8 +53,8 @@ process_svhn: venv
 cleanup:
 	@echo "Cleaning up downloaded files..."
 	rm $(DATA_DIR)/train_32x32.mat
-	# rm $(DATA_DIR)/test_32x32.mat
-	# rm $(DATA_DIR)/extra_32x32.mat
+	rm $(DATA_DIR)/test_32x32.mat
+	rm $(DATA_DIR)/extra_32x32.mat
 	@echo "Removing virtual environment..."
 	rm -rf $(PYTHON_VENV)
 
