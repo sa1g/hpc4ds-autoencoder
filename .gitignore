@@ -1,3 +1,7 @@
+# Datasets
+data/mnist/
+data/svhn/
+
 # Prerequisites
 *.d
 

@@ -81,11 +81,16 @@ The objective of this project is to develop an Image AutoEncoder from scratch an
     - 60k images
     - black and white
     - good for fast tests
+
+    - we got the [png version](https://github.com/myleott/mnist_png/tree/master), note that it's not the original one, but currently the [official website](http://yann.lecun.com/exdb/mnist/) redirects to nothing.
+
 - SVHN
     - street view house numbers
     - 600k images
     - rgb
     - good to test (load) more complex architecture setups
+
+    - got it form the [official website](http://ufldl.stanford.edu/housenumbers/)
 
 # Parallelism
 ## About the model
