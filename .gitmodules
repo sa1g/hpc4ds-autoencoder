@@ -1,6 +1,6 @@
-[submodule "extern/eigen"]
-	path = extern/eigen
+[submodule "external/eigen"]
+	path = external/eigen
 	url = https://gitlab.com/libeigen/eigen.git
-[submodule "extern/benchmark"]
-	path = extern/benchmark
+[submodule "external/benchmark"]
+	path = external/benchmark
 	url = https://github.com/google/benchmark.git

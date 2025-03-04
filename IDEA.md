@@ -119,12 +119,16 @@ I was thinking of using common, free and opensource, not hardware dependant, and
 - openmp
 - mpi
 
-## Benchmarks
+## Benchmarks, Memory Check and Behavior Analysis
 - google benchmark
+- Valgrind
+- Cppcheck
 
-# Build Tools
+## Build Tools
 Good old 
-- CMAKE
-
+- CMAKE - [Tutorial](https://github.com/ttroy50/cmake-examples)
+https://cliutils.gitlab.io/modern-cmake/chapters/intro/dodonot.html 
 It's installed on the university HPC, we don't have to worry about this.
 
+# Notes
+`cmake .. -DCMAKE_BUILD_TYPE=Debug` to build in debug mode
