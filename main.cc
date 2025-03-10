@@ -6,27 +6,24 @@
 
 int main(int argc, char *argv[])
 {
-    // std::string filename = "../data/mnist/test/0/3.png";
-    // int width{28}, height{28};
-    // bool is_rgb{false};
-
-    // Eigen::MatrixXd matrix = loadImageToMatrix(filename, is_rgb, width, height);
-
-    // std::cout << "Image loaded" << width << "x" << height << " " << (is_rgb ? "RGB" : "grayscale") << std::endl;
-
-    // // Print the first 10 elements of the matrix
-    // std::cout << matrix.block(0,0,10,10) << std::endl;
-
-    
-    
     std::string path = "../data/mnist/test";
     std::vector<std::string> filenames = get_filenames(path);
-        
-    // Dataloader dataloader(path, filenames, 28,28, filenames.size(), 20, true);
 
-    // auto batch = dataloader.get_batch();
-    // std::cout << "Batch loaded" << std::endl;
-    // std::cout << batch.abs() << std::endl;
+    Dataloader dataloader(path, filenames, 28, 28, filenames.size(), 2000, true);
+
+    std::cout << "Siamo qui" << std::endl;
+
+    // for (auto batch = dataloader.begin(); batch != dataloader.end(); ++batch) 
+    for (auto &batch : dataloader)
+    {
+        const auto &d = batch.dimensions();
+        std::cout << "Dim size: " << ", dim 0: " << d[0]
+                  << ", dim 1: " << d[1] << ", dim 2: " << d[2] << "  || \t " << batch.sum() << std::endl;
+
+        
+    }
+
+    std::cout << "Done!" << std::endl;
 
     return 0;
 }
