@@ -74,4 +74,9 @@ if __name__ == "__main__":
         # Save the image as a PNG file (you can also use other formats like JPEG if preferred)
         start_dict[label] += 1
 
+        # Set image in b&w
+        img_pil = img_pil.convert('L')
+        # Set size to 28x28
+        img_pil = img_pil.resize((28, 28))
+
         img_pil.save(os.path.join(output_dir, str(label), f'{start_dict[label]}.png'))
