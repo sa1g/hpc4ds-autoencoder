@@ -4,7 +4,7 @@ project(autoencoder)
 
 # Set standard to C++20
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_DXX_STANDARD_REQUIRED True)
 set(CMAKE_BUILD_PARALLEL_LEVEL 6)
 
 # Set build type to RelWithDebInfo if not specified
@@ -14,50 +14,76 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
-# Enable downloading dependencies for Google Benchmark
-set(BENCHMARK_DOWNLOAD_DEPENDENCIES ON)
+# Enable FetchContent module
+include(FetchContent)
 
-# Disable Google Test from being downloaded by Benchmark
-set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "Disable Google Test in Benchmark" FORCE)
+# -------------------------------
+# Fetch stb (Single-Header Library)
+# -------------------------------
+FetchContent_Declare(
+  stb
+  GIT_REPOSITORY https://github.com/nothings/stb.git
+  GIT_TAG master  # Use master branch (stb is header-only and stable)
+)
 
-# Include the stb directory for stb_image.h
-include_directories(external/stb)
+FetchContent_MakeAvailable(stb)
 
-# Add external libraries
-add_subdirectory(external/eigen)
-add_subdirectory(external/benchmark)
-add_subdirectory(external/googletest)
+# Include stb headers globally
+include_directories(${stb_SOURCE_DIR})
 
+# ----------------------
+# Fetch Eigen
+# ----------------------
+FetchContent_Declare(
+  Eigen
+  GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
+  GIT_TAG 3.4.0
+)
+FetchContent_MakeAvailable(Eigen)
+
+# ----------------------
+# Fetch Benchmark
+# ----------------------
+set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "Disable Google Test in Benchmark FORCE")
+FetchContent_Declare(
+  benchmark
+  GIT_REPOSITORY https://github.com/google/benchmark.git
+  GIT_TAG v1.9.1
+)
+FetchContent_MakeAvailable(benchmark)
+
+# ----------------------
+# Fetch Google Test
+# ----------------------
+FetchContent_Declare(
+  googletest
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG v1.16.0
+)
+FetchContent_MakeAvailable(googletest)
+
+# ----------------------
 # Add source directory for `autoencoder_lib`
+# ----------------------
 add_subdirectory(${CMAKE_SOURCE_DIR}/src)
 
+# ----------------------
 # Add executable
-add_executable(
-  ${PROJECT_NAME} 
-  main.cc
-)
-  
-# Link Eigen and Google Benchmark
-target_link_libraries(
-  ${PROJECT_NAME} 
-  PRIVATE
-  # Eigen3::Eigen 
-  autoencoder_lib
-  benchmark::benchmark
+# ----------------------
+add_executable(${PROJECT_NAME} main.cc)
 
+# Link Librarires
+target_link_libraries(
+  ${PROJECT_NAME}
+  PRIVATE
+  Eigen3::Eigen
+  benchmark::benchmark
+  autoencoder_lib
 )
-    
-# Testing
+
+# ----------------------
+# Enable Testing
+# ----------------------
 enable_testing()
 add_subdirectory(tests)
 
-#
-# target_include_directories(
-#   ${PROJECT_NAME}
-#   PRIVATE
-#   ${CMAKE_SOURCE_DIR}/src
-# )
-
-# Set include directories
-# add_subdirectory(${CMAKE_SOURCE_DIR}/src)
-# add_subdirectory(src)
