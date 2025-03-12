@@ -132,3 +132,91 @@ It's installed on the university HPC, we don't have to worry about this.
 
 # Notes
 `cmake .. -DCMAKE_BUILD_TYPE=Debug` to build in debug mode
+
+# About unit-testing
+## Notes from this [speech](https://www.youtube.com/watch?v=fr1E9aVnBxw)
+Verify that a kknwon, fixed input procudes a known, fixed output.
+
+Eliminate everything that makes input/output unclear or contingent
+ - Never generate random input, always use fixed values
+ - Don't use named constants from the model code, they may be wrong or change. Prefer literal string and numbers.
+ - Don't access the network and preferably not hte file system
+
+1. Write the tests first!
+    - Writing the model code first is slowing you down and won't get you to a good test coverage
+    - It's not about tewsting, it's about software development
+    - Test first development creates better API because you start with the user, not the used
+    - Test first hides implementation and avoids exposing internal implementation defails. It avoids brittle, tightly coupled tests.
+        - So if you wrote the tests before the implementation then they are only coupled to the API, not the implementation, so you can change the implementation without changing the tests.
+1. When writing a test
+    - Make sure the test fails before writing a test that passes
+        - This is to be sure that the test is actually testing something
+1. Why unit tests?
+    - unit means one. Each test tests exactly one thing.
+    - Each test method is one test
+    - Best practice: one assert per one test
+    - share setup in a fixture, not hte same mothod
+    - you can have multiple test classes per model class. Do no feel compelled to stuff all your tests for `Foo` in `FooTest`
+1. Unit also means Independent
+    - Tests can (and do) run i nany order
+    - Tests can (and do) run in parallel in multiple threads
+    - Tests should not interfere with each other
+1. Tests nad Thread Safety
+    - Don't use synchronization, semaphores or special data structures in tests
+    - Don't share data between tests
+        - do not use non-constant static fields in your tets
+        - Be wary of global state in teh model code under test
+    - Share setup in a fixture, no the same method
+    - Tests do not share instance data
+    - Every test that needs a slightly different setup cna go into a seprate test class
+1. Speed
+    - This is for ease of development
+    - A single test shoudl run in a second or less
+    - A complete suite should run in a minute or less
+    - Separate larger tests into additional seuites
+    - Fail fast. Run slower tests last.
+1. Failing test should produce clear output
+    - shoudl give clear, unambiguous erorr messages
+    - rotate test data:
+        - don't use the same data in every test
+        - easiert to see immediately which test is failing and why
+1. Flakiness
+    - when a test passes and doesn't passes without any code change
+    - possible sources
+        - time dependence (e.g. guis)
+        - network availability
+        - explicit randomness
+        - multithreading
+    - System skew
+        - it runs on my pc but not on yours
+        - possible sources
+            - multithreading
+            - assumptions about the OS
+            - undefined behavior
+                - floating point roundoff
+                - integer width
+                - default character set
+                - ecc.
+1. Avoid conidtional logc in tests 
+    - Do not put if statements in tests
+1. Debugging
+    - Write a failing test before you fix the bug.
+    - if the test passes, the bug isn't what you think it is
+1. Refactoring
+    - Break the code before you refactor it.
+        1. Verify that there are tests for the code you are about to refactor
+        1. Run the tests
+        1. Refactor
+    - Check the code coverage
+    - If necessary, write additional tests before doing unsafe refactorings.
+1. Development Practices
+    - Use continuous integration (e.g. Travis)
+    - Use a submit queue
+    - Never, ever allow a check in with a failing test
+    - IF it happens, rollback first; ask qwuestions later.
+    - A red test blocks all merges. No further check ins until the build is green.
+1. Finally
+    - write tests first
+    - make all test unambiguous and reproducable
+
+

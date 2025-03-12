@@ -1,18 +1,20 @@
+# Define the library and list the source files
 set(SOURCE_FILES
-  # utils.cc
+    # Add core source files here (if any)
 )
 
+# Define the library before using it
+add_library(autoencoder_lib STATIC ${SOURCE_FILES})
 
-target_include_directories(
-  ${PROJECT_NAME}
-  PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}/data
-  ${CMAKE_CURRENT_SOURCE_DIR}/utils
-
+# Set include directories for the library
+target_include_directories(autoencoder_lib PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/data
+    ${CMAKE_CURRENT_SOURCE_DIR}/utils
 )
+
+# Add subdirectories
 add_subdirectory(data)
 add_subdirectory(utils)
 
-
-target_sources(${PROJECT_NAME} PRIVATE ${SOURCE_FILES})
-
+# Ensure the main executable (autoencoder) can access the library
+target_link_libraries(autoencoder_lib PUBLIC Eigen3::Eigen)

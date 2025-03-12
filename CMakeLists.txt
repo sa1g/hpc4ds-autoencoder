@@ -17,12 +17,19 @@ endif()
 # Enable downloading dependencies for Google Benchmark
 set(BENCHMARK_DOWNLOAD_DEPENDENCIES ON)
 
+# Disable Google Test from being downloaded by Benchmark
+set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "Disable Google Test in Benchmark" FORCE)
+
 # Include the stb directory for stb_image.h
 include_directories(external/stb)
 
 # Add external libraries
 add_subdirectory(external/eigen)
 add_subdirectory(external/benchmark)
+add_subdirectory(external/googletest)
+
+# Add source directory for `autoencoder_lib`
+add_subdirectory(${CMAKE_SOURCE_DIR}/src)
 
 # Add executable
 add_executable(
@@ -33,17 +40,24 @@ add_executable(
 # Link Eigen and Google Benchmark
 target_link_libraries(
   ${PROJECT_NAME} 
-  Eigen3::Eigen 
+  PRIVATE
+  # Eigen3::Eigen 
+  autoencoder_lib
   benchmark::benchmark
+
 )
     
+# Testing
+enable_testing()
+add_subdirectory(tests)
+
 #
-target_include_directories(
-  ${PROJECT_NAME}
-  PRIVATE
-  ${CMAKE_SOURCE_DIR}/src
-)
+# target_include_directories(
+#   ${PROJECT_NAME}
+#   PRIVATE
+#   ${CMAKE_SOURCE_DIR}/src
+# )
 
 # Set include directories
-add_subdirectory(${CMAKE_SOURCE_DIR}/src)
+# add_subdirectory(${CMAKE_SOURCE_DIR}/src)
 # add_subdirectory(src)

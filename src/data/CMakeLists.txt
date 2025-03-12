@@ -2,4 +2,4 @@ set(SOURCE_FILES
   dataset.cc
 )
 
-target_sources(${PROJECT_NAME} PRIVATE ${SOURCE_FILES})
+target_sources(autoencoder_lib PRIVATE ${SOURCE_FILES})
