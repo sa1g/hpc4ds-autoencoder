@@ -3,13 +3,20 @@ Autoencoder developed from scratch, benchmarked on a single node with no paralle
 
 
 ## About
-We want this project to be self-contained, so far all external libraries are included as git submodules.
+run only my tests
+```bash
+ctest -L AutoencoderTests
+```
+<!-- TODO: or with prefix: `autoencoder_`:
+```bash
+ctest -R "^autoencoder_"
+``` -->
 
-Cloning the project:
+Building
 ```bash
-git clone --recurse-submodules <url>
+mkdir build
+cd build
+cmake ..
+make -j<n_cores>
 ```
-or afer cloning:
-```bash
-git submodule --init --recursive
-```
+

@@ -1,24 +1,4 @@
-# set(This autoencoder_tests)
-
-# set(Sources
-#     autoencoder_tests.cc
-# )
-
-# add_executable(${This} ${Sources})
-
-# target_link_libraries(${This} PUBLIC
-#     gtest_main
-#     # autoencoder
-# )
-
-# add_test(
-#     NAME ${This}
-#     COMMAND ${This}
-# )
-
-
-
-set(This autoencoder_tests)
+set(This AutoencoderTests)
 
 set(Sources
     autoencoder_tests.cc
@@ -33,5 +13,8 @@ target_link_libraries(${This} PUBLIC
 
 add_test(
     NAME ${This}
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${workdir}"
     COMMAND ${This}
 )
+
+set_property(TEST "${This}" PROPERTY LABELS TESTLABEL AutoencoderTests)
