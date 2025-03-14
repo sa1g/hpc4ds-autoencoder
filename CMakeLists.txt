@@ -24,6 +24,7 @@ FetchContent_Declare(
   stb
   GIT_REPOSITORY https://github.com/nothings/stb.git
   GIT_TAG master  # Use master branch (stb is header-only and stable)
+  GIT_SHALLOW TRUE
 )
 
 FetchContent_MakeAvailable(stb)
@@ -39,6 +40,7 @@ FetchContent_Declare(
   Eigen
   GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
   GIT_TAG 3.4.0
+  GIT_SHALLOW TRUE
 )
 
 FetchContent_MakeAvailable(Eigen)
@@ -52,6 +54,7 @@ FetchContent_Declare(
   googletest
   GIT_REPOSITORY https://github.com/google/googletest.git
   GIT_TAG v1.16.0
+  GIT_SHALLOW TRUE
 )
 FetchContent_MakeAvailable(googletest)
 
@@ -62,6 +65,7 @@ FetchContent_Declare(
   benchmark
   GIT_REPOSITORY https://github.com/google/benchmark.git
   GIT_TAG v1.9.1
+  GIT_SHALLOW TRUE
 )
 FetchContent_MakeAvailable(benchmark)
 
