@@ -3,9 +3,7 @@
 
 #include <iterator>
 #include <Eigen/Dense>
-#include <unsupported/Eigen/CXX11/Tensor>
-
-Eigen::MatrixXd loadImageToMatrix(const std::string &filename, bool &is_rgb, int &width, int &height);
+// #include <unsupported/Eigen/CXX11/MatrixXf>
 
 class Dataloader
 {
@@ -24,18 +22,16 @@ private:
 
     const int num_batches;
 
-    Eigen::Tensor<float, 3> _current_batch_data;
+    Eigen::MatrixXf _current_batch_data;
 
     /**
-     * @brief Get `batch_size` images from the dataset, load and return them as a tensor
+     * @brief Get `batch_size` images from the dataset, load and return them as a MatrixXf
      *
-     * @return Eigen::Tensor<float, 3>
+     * @return Eigen::MatrixXf
      *
-     * The shape of the tensor is [BATCH_SIZE, HEIGHT, WIDTH].
+     * If we have enough images a matrix with shape [BATCH_SIZE, HEIGHT * WIDTH] is returned
+     * If we don't have enough images, the matrix will have a shape [NUM_IMAGES, HEIGHT * WIDTH]
      */
-    // Eigen::Tensor<float, 3> get_batch();
-    Eigen::Tensor<float, 3> &get_batch();
-
 public:
     /**
      * @brief Construct a new Dataloader object
@@ -51,6 +47,13 @@ public:
      */
     Dataloader(const std::string &path, const std::vector<std::string> filenames, const int width, const int height, const int num_images, const int batch_size, const bool shuffle);
 
+    int get_num_batches() const { return num_batches; }
+    bool is_shuffled() const { return _shuffle; }
+    int get_num_images() const { return _num_images; }
+    std::vector<std::string> get_filenames() const { return _filenames; }
+
+    Eigen::MatrixXf &get_batch();
+
     class Iterator
     {
     private:
@@ -61,7 +64,7 @@ public:
         Iterator(Dataloader *dataloader, int current_batch)
             : _dataloader(dataloader), _current_batch(current_batch) {}
 
-        Eigen::Tensor<float, 3> &operator*()
+        Eigen::MatrixXf &operator*()
         {
             // Ensure current_batch is within bounds
             if (_dataloader->_batch_start_index >= _dataloader->_num_images)

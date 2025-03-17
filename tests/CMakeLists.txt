@@ -21,3 +21,11 @@ target_link_libraries(relu_tests PRIVATE gtest_main autoencoder_lib gtest)
 gtest_discover_tests(relu_tests
     PROPERTIES LABELS "autoencoder_tests"
 )
+
+# Test for dataset
+add_executable(dataset_tests dataset_tests.cc)
+target_include_directories(dataset_tests PRIVATE ${stb_SOURCE_DIR})
+target_link_libraries(dataset_tests PRIVATE gtest_main autoencoder_lib gtest)
+gtest_discover_tests(dataset_tests
+    PROPERTIES LABELS "autoencoder_tests"
+)

@@ -14,13 +14,14 @@ int main(int argc, char *argv[])
     std::cout << "Siamo qui" << std::endl;
 
     // for (auto batch = dataloader.begin(); batch != dataloader.end(); ++batch) 
+    int counter = 0;
     for (auto &batch : dataloader)
     {
-        const auto &d = batch.dimensions();
-        std::cout << "Dim size: " << ", dim 0: " << d[0]
-                  << ", dim 1: " << d[1] << ", dim 2: " << d[2] << "  || \t " << batch.sum() << std::endl;
-
-        
+        // const auto &d = batch.N();
+        // std::cout << "Dim size: " << ", dim 0: " << d[0]
+        //           << ", dim 1: " << d[1] << ", dim 2: " << d[2] << "  || \t " << batch.sum() << std::endl;
+        std::cout << counter << std::endl;
+        ++counter;
     }
 
     std::cout << "Done!" << std::endl;
