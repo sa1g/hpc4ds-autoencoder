@@ -12,3 +12,17 @@ Eigen::MatrixXf Linear::forward(Eigen::MatrixXf &input)
 {
     return ((weights * input.transpose()) + bias.replicate(1, input.rows())).transpose();
 }
+
+Eigen::MatrixXf Linear::backward(Eigen::MatrixXf &input, Eigen::MatrixXf &grad_output)
+{
+    // Gradient wrt weights: grad_output * inputT
+    grad_weights = grad_output * input;
+
+    // Gradient wrt bias: sum of grad_output along the batch dimension
+    grad_bias = grad_output.rowwise().sum();
+
+    // Gradient wrt input: weightsT * grad_output
+    grad_input = weights.transpose() * grad_output;
+
+    return grad_input;
+}

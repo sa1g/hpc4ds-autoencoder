@@ -100,3 +100,46 @@ TEST(LinearLayerTest, LargeValues)
         }
     }
 }
+
+TEST(LinearLayerTest, BackwardPassWeights)
+{
+    int input_dim = 3;
+    int output_dim = 2;
+    Linear layer(input_dim, output_dim);
+
+    Eigen::MatrixXf input(3, 3);
+    input << 1, 2, 3,
+        4, 5, 6,
+        7, 8, 9;
+
+    Eigen::MatrixXf grad_output(2, 3); // Gradient of loss w.r.t. output
+    grad_output << 1, 0, 0,
+        0, 1, 1;
+
+    Eigen::MatrixXf grad_input = layer.backward(input, grad_output);
+
+    // Calculate expected gradients for weights
+    Eigen::MatrixXf expected_grad_weights = grad_output * input;
+
+    // Check that the gradient matches
+    EXPECT_TRUE(layer.grad_weights.isApprox(expected_grad_weights));
+}
+
+TEST(LinearLayerTest, BackwardPassInput)
+{
+    int input_dim{3};
+    int output_dim{2};
+    Linear layer(input_dim, output_dim);
+
+    Eigen::MatrixXf input(3, 3);
+    input << 1, 2, 3, 4, 5, 6, 7, 8, 9;
+
+    Eigen::MatrixXf grad_output(2, 3);
+    grad_output << 1, 0, 0, 0, 1, 1;
+
+    Eigen::MatrixXf grad_input = layer.backward(input, grad_output);
+
+    Eigen::MatrixXf expected_grad_input = layer.weights.transpose() * grad_output;
+
+    EXPECT_TRUE(grad_input.isApprox(expected_grad_input));
+}
