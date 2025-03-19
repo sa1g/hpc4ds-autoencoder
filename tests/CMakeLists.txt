@@ -29,3 +29,10 @@ target_link_libraries(dataset_tests PRIVATE gtest_main autoencoder_lib gtest)
 gtest_discover_tests(dataset_tests
     PROPERTIES LABELS "autoencoder_tests"
 )
+
+# Test for sgd
+add_executable(sgd_tests sgd_tests.cc)
+target_link_libraries(sgd_tests PRIVATE gtest_main autoencoder_lib gtest)
+gtest_discover_tests(sgd_tests
+    PROPERTIES LABELS "autoencoder_tests"
+)
