@@ -5,16 +5,17 @@
 
 TEST(LinearLayerTest, OutputShape)
 {
-    int batch_size{2};
-    int input_dim{10};
-    int output_dim{5};
+    constexpr size_t max_batch_size = 10;
+    constexpr size_t input_dim = 10;
+    constexpr size_t output_dim = 5;
 
-    Linear layer(input_dim, output_dim);
-    Eigen::MatrixXf input(batch_size, input_dim);
+    Linear<max_batch_size, input_dim, output_dim> layer;
+    int batch_size = 2; // Actual batch size used in the test
 
+    Eigen::Matrix<float, Eigen::Dynamic, input_dim> input(batch_size, input_dim);
     input.setRandom();
 
-    Eigen::MatrixXf output = layer.forward(input);
+    Eigen::Matrix<float, Eigen::Dynamic, output_dim> output = layer.forward(input);
 
     EXPECT_EQ(output.rows(), batch_size);
     EXPECT_EQ(output.cols(), output_dim);
@@ -22,11 +23,11 @@ TEST(LinearLayerTest, OutputShape)
 
 TEST(LinearLayerTest, BiasApplication)
 {
-    int batch_size{1};
-    int input_dim{3};
-    int output_dim{2};
+    constexpr size_t max_batch_size = 10;
+    constexpr size_t input_dim = 3;
+    constexpr size_t output_dim = 2;
 
-    Linear layer(input_dim, output_dim);
+    Linear<max_batch_size, input_dim, output_dim> layer;
     layer.weights << 1, 2, 3, 4, 5, 6;
     layer.bias << 1, 2;
 
@@ -41,11 +42,11 @@ TEST(LinearLayerTest, BiasApplication)
 
 TEST(LinearLayerTest, NoBias)
 {
-    int batch_size{1};
-    int input_dim{3};
-    int output_dim{2};
+    constexpr size_t max_batch_size = 10;
+    constexpr size_t input_dim = 3;
+    constexpr size_t output_dim = 2;
 
-    Linear layer(input_dim, output_dim);
+    Linear<max_batch_size, input_dim, output_dim> layer;
     layer.bias.setZero();
 
     Eigen::MatrixXf input(1, 3);
@@ -63,11 +64,13 @@ TEST(LinearLayerTest, NoBias)
 
 TEST(LinearLayerTest, ZeroInput)
 {
-    int batch_size{3};
-    int input_dim{4};
-    int output_dim{2};
+    constexpr size_t max_batch_size = 10;
+    constexpr size_t input_dim = 4;
+    constexpr size_t output_dim = 2;
 
-    Linear layer(input_dim, output_dim);
+    Linear<max_batch_size, input_dim, output_dim> layer;
+
+    int batch_size{3};
     Eigen::MatrixXf input = Eigen::MatrixXf::Zero(batch_size, input_dim);
 
     Eigen::MatrixXf output = layer.forward(input);
@@ -80,11 +83,13 @@ TEST(LinearLayerTest, ZeroInput)
 
 TEST(LinearLayerTest, LargeValues)
 {
-    int batch_size{2};
-    int input_dim{3};
-    int output_dim{2};
+    constexpr size_t max_batch_size = 10;
+    constexpr size_t input_dim = 3;
+    constexpr size_t output_dim = 2;
 
-    Linear layer(input_dim, output_dim);
+    Linear<max_batch_size, input_dim, output_dim> layer;
+
+    int batch_size{2};
 
     Eigen::MatrixXf input(batch_size, input_dim);
     input.setConstant(1e6);
@@ -101,45 +106,52 @@ TEST(LinearLayerTest, LargeValues)
     }
 }
 
-TEST(LinearLayerTest, BackwardPassWeights)
+constexpr size_t max_batch_size = 4;
+constexpr size_t input_dim = 3;
+constexpr size_t output_dim = 2;
+
+class LinearTest : public ::testing::Test
 {
-    int input_dim = 3;
-    int output_dim = 2;
-    Linear layer(input_dim, output_dim);
+protected:
+    Linear<max_batch_size, input_dim, output_dim> linear_layer;
 
-    Eigen::MatrixXf input(3, 3);
-    input << 1, 2, 3,
-        4, 5, 6,
-        7, 8, 9;
+    void SetUp() override
+    {
+        // Set deterministic weights and biases for reproducibility
+        linear_layer.weights << 0.1, 0.2, 0.3,
+            0.4, 0.5, 0.6;
+        linear_layer.bias << 0.1, 0.2;
+    }
+};
 
-    Eigen::MatrixXf grad_output(2, 3); // Gradient of loss w.r.t. output
-    grad_output << 1, 0, 0,
-        0, 1, 1;
-
-    Eigen::MatrixXf grad_input = layer.backward(input, grad_output);
-
-    // Calculate expected gradients for weights
-    Eigen::MatrixXf expected_grad_weights = grad_output * input;
-
-    // Check that the gradient matches
-    EXPECT_TRUE(layer.grad_weights.isApprox(expected_grad_weights));
-}
-
-TEST(LinearLayerTest, BackwardPassInput)
+TEST_F(LinearTest, BackwardComputesCorrectGradients)
 {
-    int input_dim{3};
-    int output_dim{2};
-    Linear layer(input_dim, output_dim);
+    Eigen::Matrix<float, Eigen::Dynamic, input_dim> input(2, input_dim);
+    input << 1.0, 2.0, 3.0,
+        4.0, 5.0, 6.0;
 
-    Eigen::MatrixXf input(3, 3);
-    input << 1, 2, 3, 4, 5, 6, 7, 8, 9;
+    Eigen::Matrix<float, Eigen::Dynamic, output_dim> grad_output(2, output_dim);
+    grad_output << 0.5, -0.5,
+        1.0, -1.0;
 
-    Eigen::MatrixXf grad_output(2, 3);
-    grad_output << 1, 0, 0, 0, 1, 1;
+    Eigen::Matrix<float, Eigen::Dynamic, input_dim> grad_input = linear_layer.backward(input, grad_output);
 
-    Eigen::MatrixXf grad_input = layer.backward(input, grad_output);
+    // Expected gradients
+    Eigen::Matrix<float, output_dim, input_dim> expected_grad_weights;
+    expected_grad_weights << (0.5 * 1.0 + 1.0 * 4.0), (0.5 * 2.0 + 1.0 * 5.0), (0.5 * 3.0 + 1.0 * 6.0),
+        (-0.5 * 1.0 + -1.0 * 4.0), (-0.5 * 2.0 + -1.0 * 5.0), (-0.5 * 3.0 + -1.0 * 6.0);
 
-    Eigen::MatrixXf expected_grad_input = layer.weights.transpose() * grad_output;
+    Eigen::Matrix<float, output_dim, 1> expected_grad_bias;
+    expected_grad_bias << (0.5 + 1.0), (-0.5 + -1.0);
 
-    EXPECT_TRUE(grad_input.isApprox(expected_grad_input));
+    Eigen::Matrix<float, Eigen::Dynamic, input_dim> expected_grad_input(2, input_dim);
+    expected_grad_input = grad_output * linear_layer.weights;
+
+    // Validate computed gradients
+    EXPECT_TRUE(linear_layer.grad_weights.isApprox(expected_grad_weights, 1e-5))
+        << "Gradient weights do not match expected values.";
+    EXPECT_TRUE(linear_layer.grad_bias.isApprox(expected_grad_bias, 1e-5))
+        << "Gradient bias does not match expected values.";
+    EXPECT_TRUE(grad_input.isApprox(expected_grad_input, 1e-5))
+        << "Gradient input does not match expected values.";
 }
