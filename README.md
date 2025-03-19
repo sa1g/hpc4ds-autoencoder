@@ -19,4 +19,8 @@ cd build
 cmake ..
 make -j<n_cores>
 ```
-
+```bash
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+./build/benchmark_tests
+```

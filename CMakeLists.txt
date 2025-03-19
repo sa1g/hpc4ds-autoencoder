@@ -95,3 +95,9 @@ target_link_libraries(
 # ----------------------
 enable_testing()
 add_subdirectory(tests)
+
+# ----------------------
+# Enable Benchmarks
+# ----------------------
+add_subdirectory(benchmarks)
+
