@@ -36,3 +36,10 @@ target_link_libraries(sgd_tests PRIVATE gtest_main autoencoder_lib gtest)
 gtest_discover_tests(sgd_tests
     PROPERTIES LABELS "autoencoder_tests"
 )
+
+# Test for sigmoid
+add_executable(sigmoid_tests sigmoid_tests.cc)
+target_link_libraries(sigmoid_tests PRIVATE gtest_main autoencoder_lib gtest)
+gtest_discover_tests(sigmoid_tests
+    PROPERTIES LABELS "autoencoder_tests"
+)
