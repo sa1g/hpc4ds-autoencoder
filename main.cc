@@ -6,16 +6,22 @@
 
 int main(int argc, char *argv[])
 {
-    std::string path = "../data/mnist/test";
-    std::vector<std::string> filenames = get_filenames(path);
+    std::string train_path = "../data/mnist/train";
+    std::vector<std::string> filenames = get_filenames(train_path);
+    auto [train_filenames, eval_filenames] = random_split_filenames(filenames, 20, 42);
 
-    Dataloader dataloader(path, filenames, 28, 28, filenames.size(), 2000, true);
+    std::string test_path = "../data/mnist/test";
+    std::vector<std::string> test_filenames = get_filenames(test_path);
 
-    std::cout << "Siamo qui" << std::endl;
+    Dataloader train_dataloader(train_path, train_filenames, 28, 28, train_filenames.size(), 2000, true);
+    Dataloader eval_dataloader(train_path, eval_filenames, 28, 28, eval_filenames.size(), 2000, false);
+    Dataloader test_dataloader(test_path, test_filenames, 28, 28, test_filenames.size(), 2000, false);
 
-    // for (auto batch = dataloader.begin(); batch != dataloader.end(); ++batch) 
+    std::cout << "Got dataloaders" << std::endl;
+
+    // for (auto batch = dataloader.begin(); batch != dataloader.end(); ++batch)
     int counter = 0;
-    for (auto &batch : dataloader)
+    for (auto &batch : train_dataloader)
     {
         // const auto &d = batch.N();
         // std::cout << "Dim size: " << ", dim 0: " << d[0]
