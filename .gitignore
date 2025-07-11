@@ -1,6 +1,7 @@
 
 # Build directory
 build/
+Testing/
 
 # Datasets
 data/mnist/
