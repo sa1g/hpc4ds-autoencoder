@@ -36,3 +36,10 @@ target_link_libraries(sgd_tests PRIVATE gtest_main autoencoder_lib gtest)
 gtest_discover_tests(sgd_tests
     PROPERTIES LABELS "autoencoder_tests"
 )
+
+# Test for common/random_split
+add_executable(random_split_tests random_split_tests.cc)
+target_link_libraries(random_split_tests PRIVATE gtest_main autoencoder_lib gtest)
+gtest_discover_tests(random_split_tests
+    PROPERTIES LABELS "autoencoder_tests"
+)
