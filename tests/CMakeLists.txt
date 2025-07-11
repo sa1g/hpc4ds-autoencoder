@@ -43,3 +43,18 @@ target_link_libraries(random_split_tests PRIVATE gtest_main autoencoder_lib gtes
 gtest_discover_tests(random_split_tests
     PROPERTIES LABELS "autoencoder_tests"
 )
+
+
+# Test for sigmoid
+add_executable(sigmoid_tests sigmoid_tests.cc)
+target_link_libraries(sigmoid_tests PRIVATE gtest_main autoencoder_lib gtest)
+gtest_discover_tests(sigmoid_tests
+    PROPERTIES LABELS "autoencoder_tests"
+)
+
+# Test for mean squared error
+add_executable(mse_tests mse_tests.cc)
+target_link_libraries(mse_tests PRIVATE gtest_main autoencoder_lib gtest)
+gtest_discover_tests(mse_tests
+    PROPERTIES LABELS "autoencoder_tests"
+)

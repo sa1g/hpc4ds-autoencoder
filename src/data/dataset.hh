@@ -5,6 +5,18 @@
 #include <Eigen/Dense>
 // #include <unsupported/Eigen/CXX11/MatrixXf>
 
+/**
+ * @brief Dataloader class - used as iterator you get batches of shape [BATCH_SIZE, HEIGHT * WIDTH]. If
+ * there's not enough images, the last batch will be truncated (skipped).
+ *
+ * @param path Path to the dataset
+ * @param filenames Vector of filenames
+ * @param width Width of the image
+ * @param height Height of the image
+ * @param num_images Number of images in the dataset
+ * @param batch_size Size of the batch
+ * @param shuffle Shuffle the dataset
+ */
 class Dataloader
 {
 private:
@@ -24,27 +36,7 @@ private:
 
     Eigen::MatrixXf _current_batch_data;
 
-    /**
-     * @brief Get `batch_size` images from the dataset, load and return them as a MatrixXf
-     *
-     * @return Eigen::MatrixXf
-     *
-     * If we have enough images a matrix with shape [BATCH_SIZE, HEIGHT * WIDTH] is returned
-     * If we don't have enough images, the matrix will have a shape [NUM_IMAGES, HEIGHT * WIDTH]
-     */
 public:
-    /**
-     * @brief Construct a new Dataloader object
-     *
-     * @param path Path to the dataset
-     * @param filenames Vector of filenames
-     * @param width Width of the image
-     * @param height Height of the image
-     * @param num_images Number of images in the dataset
-     * @param batch_size Size of the batch
-     * @param shuffle Shuffle the dataset
-     *
-     */
     Dataloader(const std::string &path, const std::vector<std::string> filenames, const int width, const int height, const int num_images, const int batch_size, const bool shuffle);
 
     int get_num_batches() const { return num_batches; }

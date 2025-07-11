@@ -1,8 +1,5 @@
 set(SOURCE_FILES
-  linear.hh
-  relu.hh
-  sigmoid.hh
-  mse.hh
+  model.hh
 )
 
 target_sources(autoencoder_lib PRIVATE ${SOURCE_FILES})
