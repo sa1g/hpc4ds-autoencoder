@@ -74,6 +74,7 @@ The objective of this project is to develop an Image AutoEncoder from scratch an
     - Testing loop
     - Eval loop
     - Logging
+      - https://github.com/RustingSword/tensorboard_logger
 
 # Datasets
 - MNIST
