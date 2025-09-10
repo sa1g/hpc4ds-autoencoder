@@ -29,4 +29,4 @@ void sgd(float learning_rate, Layers &...layers)
     (sgd(layers, learning_rate), ...);
 }
 
-#endif __AUTOENCODER_OPTIM_HH__
+#endif // __AUTOENCODER_OPTIM_HH__

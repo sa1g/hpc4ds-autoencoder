@@ -1,7 +1,6 @@
 #ifndef __AUTOENCODER_DATASET_HH__
 #define __AUTOENCODER_DATASET_HH__
 
-#include <iterator>
 #include <Eigen/Dense>
 // #include <unsupported/Eigen/CXX11/MatrixXf>
 

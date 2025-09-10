@@ -117,7 +117,14 @@ I was thinking of using common, free and opensource, not hardware dependant, and
 
 ## HPC
 - openmp
+    1. enable only eigen
+    2. enable only our code
+    3. enable both
 - mpi
+    - scaling on multiple nodes (ofc we split the amount of data)
+        - need to sum and average the models parameters
+            - this can be done in a `central` node (which sums and averages, then broadcast)
+            - like all reduce: sum while moving weights from node A -> B -> -> central node that averages and broadcast
 
 ## Benchmarks, Memory Check and Behavior Analysis
 - google benchmark

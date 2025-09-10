@@ -15,7 +15,7 @@ ctest -L autoencoder_tests
 ctest -R "^autoencoder_"
 ``` -->
 
-Building
+## Building
 
 ```bash
 mkdir build
@@ -29,3 +29,19 @@ cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ./build/benchmark_tests
 ```
+
+## Testing
+```bash
+cd build
+
+# Either
+ctest -L "autoencoder_tests"
+# or
+ctest --output-on-failure
+# or whatever ctest config you want
+```
+
+
+
+## Course slides
+- lecture 13 for instructions on what to put in the report
