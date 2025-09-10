@@ -8,7 +8,7 @@ TEST(MSETest, DiverseLossCases)
     constexpr size_t max_batch_size = 3;  // Match actual batch size
     constexpr size_t data_dim = 3;
 
-    MSE<max_batch_size, data_dim> mse;
+    MSE mse{max_batch_size, data_dim};
 
     // Test case 1: Perfect match (MSE = 0)
     {

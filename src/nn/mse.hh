@@ -3,10 +3,15 @@
 
 #include <Eigen/Dense>
 
-template <size_t max_batch_size, size_t data_dim>
 class MSE
 {
+private:
+    size_t max_batch_size;
+    size_t data_dim;    
+
 public:
+    MSE(size_t max_batch_size, size_t data_dim) : max_batch_size(max_batch_size), data_dim(data_dim) {}
+
     // Each row of input/output is a different picture of size data_dim
     Eigen::VectorXf mse_loss(
         const Eigen::MatrixXf &input,
