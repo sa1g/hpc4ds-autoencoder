@@ -3,7 +3,6 @@
 
 // https://en.wikipedia.org/wiki/Rectifier_(neural_networks)
 
-// #include "Eigen/src/Core/Matrix.h"
 #include <Eigen/Dense>
 
 /**
@@ -50,7 +49,8 @@ public:
    */
   Eigen::MatrixXf backward(const Eigen::MatrixXf &input,
                            const Eigen::MatrixXf &grad_output) const {
-    return (input.array() > 0).template cast<float>() * grad_output.array();
+    // return (input.array() > 0).template cast<float>() * grad_output.array();
+    return (input.array()>0).select(grad_output, 0);
   }
 };
 

@@ -60,9 +60,13 @@ class Linear
         assert(input.cols() == input_dim && "Input dimension mismatch");
         #endif
         Eigen::MatrixXf output(input.rows(), output_dim);
-        // output.noalias() = input * weights.transpose(); // TODO: add docs
-        // output.rowwise() += bias.transpose();
-        output = (input * weights.transpose()) + bias.replicate(1, input.rows()).transpose();
+        
+        // output = (input * weights.transpose()) + bias.replicate(1, input.rows()).transpose();
+        
+        output.noalias() = input * weights.transpose();
+        output.rowwise() += bias.transpose();
+        
+        
         return output;
     }
 
