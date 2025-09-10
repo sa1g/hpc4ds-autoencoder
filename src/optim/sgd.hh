@@ -6,12 +6,12 @@
 #include "linear.hh"
 
 template <typename T>
-concept IsLinear = requires {
-    typename T::weights;
-    typename T::bias;
-    typename T::grad_weights;
-    typename T::grad_bias;
-    typename T::grad_input;
+concept IsLinear = requires(T layer) {
+    requires std::same_as<decltype(layer.weights), Eigen::MatrixXf>;
+    requires std::same_as<decltype(layer.bias), Eigen::VectorXf>;
+    requires std::same_as<decltype(layer.grad_weights), Eigen::MatrixXf>;
+    requires std::same_as<decltype(layer.grad_bias), Eigen::VectorXf>;
+    requires std::same_as<decltype(layer.grad_input), Eigen::MatrixXf>;
 };
 
 template <IsLinear Layer>
