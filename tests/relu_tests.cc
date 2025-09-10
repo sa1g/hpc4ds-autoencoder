@@ -9,7 +9,7 @@ TEST(ReLULayerTest, ForwardPass)
     constexpr size_t max_batch_size = 10;
     constexpr size_t data_dim = 3;
 
-    ReLU<max_batch_size, data_dim> relu;
+    ReLU relu{max_batch_size, data_dim};
     Eigen::MatrixXf input(2, 3);
     input << -1, 2, -3, 4, -5, 6;
 
@@ -27,7 +27,7 @@ TEST(ReLULayerTest, BackwardPass)
     constexpr size_t max_batch_size = 10;
     constexpr size_t data_dim = 3;
 
-    ReLU<max_batch_size, data_dim> relu;
+    ReLU relu{max_batch_size, data_dim};
     Eigen::MatrixXf input(2, 3);
     input << 1, -2, 3, -4, 5, -6;
 
