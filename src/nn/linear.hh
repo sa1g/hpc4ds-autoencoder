@@ -2,7 +2,7 @@
 #define __AUTOENCODER_LINEAR_HH__
 
 #include <Eigen/Dense>
-#include "Eigen/src/Core/Matrix.h"
+// #include "Eigen/src/Core/Matrix.h"
 #include "common.hh"
 
 /**
@@ -43,9 +43,10 @@ public:
     Eigen::MatrixXf forward(
         const Eigen::MatrixXf &input) const
     {
+        #ifdef DEBUG
         assert(input.rows() <= max_batch_size && "Batch size exceeds maximum batch size");
         assert(input.cols() == input_dim && "Input dimension mismatch");
-
+        #endif
         Eigen::MatrixXf output(input.rows(), output_dim);
         // output.noalias() = input * weights.transpose(); // TODO: add docs
         // output.rowwise() += bias.transpose();
