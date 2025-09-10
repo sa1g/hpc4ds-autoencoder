@@ -3,7 +3,6 @@
 
 // https://en.wikipedia.org/wiki/Sigmoid_function
 
-// #include "Eigen/src/Core/Matrix.h"
 #include <Eigen/Dense>
 
 class Sigmoid

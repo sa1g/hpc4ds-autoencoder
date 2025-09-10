@@ -1,49 +1,81 @@
 // #include <stdio.h>
+#include <cstdio>
 #include <iostream>
 
-#include "dataset.hh"
 #include "common.hh"
+#include "dataset.hh"
 #include "model.hh"
+#include "mse.hh"
+#include "sgd.hh"
+// #include "linear.hh"
 
-int main(int argc, char *argv[])
-{
-    std::string train_path = "../data/mnist/train";
-    std::vector<std::string> filenames = get_filenames(train_path);
-    auto [train_filenames, eval_filenames] = random_split_filenames(filenames, 20, 42);
+int main(int argc, char *argv[]) {
+  ////////////////////////////////////////////////////////
+  const int max_batch_size{254};
+  const int input_dim{28 * 28};
+  const int hidden_dim{256};
+  const int output_dim{input_dim};
+  const float lr{0.01};
 
-    std::string test_path = "../data/mnist/test";
-    std::vector<std::string> test_filenames = get_filenames(test_path);
+  ///////////////////////////////////////////////////////
 
-    const int batch_size = 64;
+  std::string train_path = "../data/mnist/train";
+  std::vector<std::string> filenames = get_filenames(train_path);
+  auto [train_filenames, eval_filenames] =
+      random_split_filenames(filenames, 20, 42);
 
-    Dataloader train_dataloader(train_path, train_filenames, 28, 28, train_filenames.size(), batch_size, true);
-    Dataloader eval_dataloader(train_path, eval_filenames, 28, 28, eval_filenames.size(), batch_size, false);
-    Dataloader test_dataloader(test_path, test_filenames, 28, 28, test_filenames.size(), batch_size, false);
+  std::string test_path = "../data/mnist/test";
+  std::vector<std::string> test_filenames = get_filenames(test_path);
 
-    std::cout << "Got dataloaders" << std::endl;
+  Dataloader train_dataloader(train_path, train_filenames, 28, 28,
+                              train_filenames.size(), max_batch_size, true);
+  Dataloader eval_dataloader(train_path, eval_filenames, 28, 28,
+                             eval_filenames.size(), max_batch_size, false);
+  Dataloader test_dataloader(test_path, test_filenames, 28, 28,
+                             test_filenames.size(), max_batch_size, false);
 
-    Linear<10, 28*28, 2> encoder;
+  std::cout << "Got dataloaders" << std::endl;
+
+  //////////////////////////////////////////////////////////
+
+  AutoencoderModel model{max_batch_size, input_dim, hidden_dim, output_dim};
+  // std::cout << "Created model" << std::endl;
+
+  // return 1;
+
+  // // for (auto batch = dataloader.begin(); batch != dataloader.end();
+  // ++batch) int counter = 0;
+
+  MSE criterion{max_batch_size, input_dim};
+
+  /////////////////////////////////////////////////////////
 
 
-    // AutoencoderModel<2000, 28 * 28, 256, 28 * 28> model;
-    // std::cout << "Created model" << std::endl;
+  for (int epoch = 0; epoch < 100; ++epoch) {
+    // TODO: collect metrics, etc
 
-    // return 1;
+    float epoch_loss{0};
+    int num_batches{0};
 
-    // // for (auto batch = dataloader.begin(); batch != dataloader.end(); ++batch)
-    // int counter = 0;
-    // for (auto &batch : train_dataloader)
-    // {
-    //     // const auto &d = batch.N();
-    //     // std::cout << "Dim size: " << ", dim 0: " << d[0]
-    //     //           << ", dim 1: " << d[1] << ", dim 2: " << d[2] << "  || \t " << batch.sum() << std::endl;
-    //     // std::cout << counter << std::endl;
-    //     // ++counter;
+    for (auto &batch : train_dataloader) {
+      auto prediction = model.forward(batch);
+      auto loss = criterion.mse_loss(batch, prediction);
+      auto grad = criterion.mse_gradient(batch, prediction);
+      model.backward(batch, grad);
+      sgd(lr, model.encoder, model.decoder);
 
-    //     std::cout << "Batch shape: " << batch.rows() << "x" << batch.cols() << std::endl;
-    // }
+      num_batches++;
+      epoch_loss += loss;
 
-    std::cout << "Done!" << std::endl;
+      printf("Batch %i/%i | Loss: %.3f\n", num_batches,
+             train_dataloader.get_num_batches(), loss);
+    }
 
-    return 0;
+    // float average_epoch_loss = epoch_loss / num_batches;
+    
+    break;
+  }
+  std::cout << "Done!" << std::endl;
+
+  return 0;
 }
