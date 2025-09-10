@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <Eigen/Dense>
 
+#include "Eigen/src/Core/Matrix.h"
 #include "linear.hh"
 
 TEST(LinearLayerTest, OutputShape)
@@ -12,10 +13,11 @@ TEST(LinearLayerTest, OutputShape)
     Linear<max_batch_size, input_dim, output_dim> layer;
     int batch_size = 2; // Actual batch size used in the test
 
-    Eigen::Matrix<float, Eigen::Dynamic, input_dim> input(batch_size, input_dim);
+    // Eigen::Matrix<float, Eigen::Dynamic, input_dim> input(batch_size, input_dim);
+    Eigen::MatrixXf input(batch_size, input_dim);
     input.setRandom();
 
-    Eigen::Matrix<float, Eigen::Dynamic, output_dim> output = layer.forward(input);
+    Eigen::MatrixXf output = layer.forward(input);
 
     EXPECT_EQ(output.rows(), batch_size);
     EXPECT_EQ(output.cols(), output_dim);
@@ -126,25 +128,25 @@ protected:
 
 TEST_F(LinearTest, BackwardComputesCorrectGradients)
 {
-    Eigen::Matrix<float, Eigen::Dynamic, input_dim> input(2, input_dim);
-    input << 1.0, 2.0, 3.0,
+    Eigen::MatrixXf input(2, input_dim);
+    input << 1.0, 2.0, 3.0, 
         4.0, 5.0, 6.0;
 
-    Eigen::Matrix<float, Eigen::Dynamic, output_dim> grad_output(2, output_dim);
+    Eigen::MatrixXf grad_output(2, output_dim);
     grad_output << 0.5, -0.5,
         1.0, -1.0;
 
-    Eigen::Matrix<float, Eigen::Dynamic, input_dim> grad_input = linear_layer.backward(input, grad_output);
+    Eigen::MatrixXf grad_input = linear_layer.backward(input, grad_output);
 
     // Expected gradients
-    Eigen::Matrix<float, output_dim, input_dim> expected_grad_weights;
+    Eigen::MatrixXf expected_grad_weights(output_dim, input_dim);
     expected_grad_weights << (0.5 * 1.0 + 1.0 * 4.0), (0.5 * 2.0 + 1.0 * 5.0), (0.5 * 3.0 + 1.0 * 6.0),
         (-0.5 * 1.0 + -1.0 * 4.0), (-0.5 * 2.0 + -1.0 * 5.0), (-0.5 * 3.0 + -1.0 * 6.0);
 
-    Eigen::Matrix<float, output_dim, 1> expected_grad_bias;
+    Eigen::VectorXf expected_grad_bias(output_dim);
     expected_grad_bias << (0.5 + 1.0), (-0.5 + -1.0);
 
-    Eigen::Matrix<float, Eigen::Dynamic, input_dim> expected_grad_input(2, input_dim);
+    Eigen::MatrixXf expected_grad_input(2, input_dim);
     expected_grad_input = grad_output * linear_layer.weights;
 
     // Validate computed gradients
