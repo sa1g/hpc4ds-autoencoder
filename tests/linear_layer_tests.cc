@@ -10,7 +10,7 @@ TEST(LinearLayerTest, OutputShape)
     constexpr size_t input_dim = 10;
     constexpr size_t output_dim = 5;
 
-    Linear<max_batch_size, input_dim, output_dim> layer;
+    Linear layer{max_batch_size, input_dim, output_dim};
     int batch_size = 2; // Actual batch size used in the test
 
     // Eigen::Matrix<float, Eigen::Dynamic, input_dim> input(batch_size, input_dim);
@@ -29,7 +29,7 @@ TEST(LinearLayerTest, BiasApplication)
     constexpr size_t input_dim = 3;
     constexpr size_t output_dim = 2;
 
-    Linear<max_batch_size, input_dim, output_dim> layer;
+    Linear layer{max_batch_size, input_dim, output_dim};
     layer.weights << 1, 2, 3, 4, 5, 6;
     layer.bias << 1, 2;
 
@@ -48,7 +48,7 @@ TEST(LinearLayerTest, NoBias)
     constexpr size_t input_dim = 3;
     constexpr size_t output_dim = 2;
 
-    Linear<max_batch_size, input_dim, output_dim> layer;
+    Linear layer{max_batch_size, input_dim, output_dim};
     layer.bias.setZero();
 
     Eigen::MatrixXf input(1, 3);
@@ -70,7 +70,7 @@ TEST(LinearLayerTest, ZeroInput)
     constexpr size_t input_dim = 4;
     constexpr size_t output_dim = 2;
 
-    Linear<max_batch_size, input_dim, output_dim> layer;
+    Linear layer{max_batch_size, input_dim, output_dim};
 
     int batch_size{3};
     Eigen::MatrixXf input = Eigen::MatrixXf::Zero(batch_size, input_dim);
@@ -89,7 +89,7 @@ TEST(LinearLayerTest, LargeValues)
     constexpr size_t input_dim = 3;
     constexpr size_t output_dim = 2;
 
-    Linear<max_batch_size, input_dim, output_dim> layer;
+    Linear layer{max_batch_size, input_dim, output_dim};
 
     int batch_size{2};
 
@@ -115,7 +115,7 @@ constexpr size_t output_dim = 2;
 class LinearTest : public ::testing::Test
 {
 protected:
-    Linear<max_batch_size, input_dim, output_dim> linear_layer;
+    Linear linear_layer{max_batch_size, input_dim, output_dim};
 
     void SetUp() override
     {

@@ -10,17 +10,29 @@
  *
  * This class implements a linear layer with weights and bias, and provides methods for forward and backward passes.
  */
-template <size_t max_batch_size, size_t input_dim, size_t output_dim>
+// template <size_t max_batch_size, size_t input_dim, size_t output_dim>
 class Linear
 {
-public:
+    private:
+    size_t max_batch_size;
+    size_t input_dim;
+    size_t output_dim;
+
+
+    public:
+
+
     Eigen::MatrixXf weights;
     Eigen::VectorXf bias;
     Eigen::MatrixXf grad_weights;
     Eigen::VectorXf grad_bias;
     Eigen::MatrixXf grad_input;
     
-    Linear() :
+    Linear(size_t max_batch_size, size_t input_dim, size_t output_dim) :
+        max_batch_size(max_batch_size),
+        input_dim(input_dim),
+        output_dim(output_dim),
+
         weights(output_dim, input_dim),
         bias(output_dim),
         grad_weights(output_dim, input_dim),
