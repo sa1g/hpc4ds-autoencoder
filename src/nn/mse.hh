@@ -8,12 +8,21 @@ class MSE
 {
 public:
     // Each row of input/output is a different picture of size data_dim
-    Eigen::Matrix<float, Eigen::Dynamic, 1> mse_loss(
-        const Eigen::Matrix<float, Eigen::Dynamic, data_dim> &input,
-        const Eigen::Matrix<float, Eigen::Dynamic, data_dim> &output)
+    Eigen::VectorXf mse_loss(
+        // <float, Eigen::Dynamic, data_dim>
+        const Eigen::MatrixXf &input,
+        const Eigen::MatrixXf &output)
     {
-        Eigen::Matrix<float, Eigen::Dynamic, data_dim> diff = input - output;
-        Eigen::Matrix<float, Eigen::Dynamic, 1> losses = diff.rowwise().squaredNorm() / data_dim;
+        assert(input.rows() <= max_batch_size && "Input rows exceed max batch size");
+        assert(input.cols() == data_dim && "Input cols dimension mismatch");        
+        assert(output.rows() <= max_batch_size && "Output rows exceed max batch size");
+        assert(output.cols() == data_dim && "Output cols dimension mismatch");        
+        
+        Eigen::MatrixXf diff = input - output;
+        
+        Eigen::VectorXf losses = diff.rowwise().squaredNorm() / data_dim;
+        // Eigen::Matrix<float, Eigen::Dynamic, 1> losses = 
+        
         return losses;
     }
 };
