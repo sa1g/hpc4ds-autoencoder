@@ -2,6 +2,7 @@
 #define __AUTOENCODER_LINEAR_HH__
 
 #include <Eigen/Dense>
+#include "Eigen/src/Core/Matrix.h"
 #include "common.hh"
 
 /**
@@ -13,14 +14,19 @@ template <size_t max_batch_size, size_t input_dim, size_t output_dim>
 class Linear
 {
 public:
-    Eigen::Matrix<float, output_dim, input_dim> weights;
-    Eigen::Matrix<float, output_dim, 1> bias;
-
-    Eigen::Matrix<float, output_dim, input_dim> grad_weights;
-    Eigen::Matrix<float, output_dim, 1> grad_bias;
-    Eigen::Matrix<float, Eigen::Dynamic, input_dim> grad_input;
-
-    Linear()
+    Eigen::MatrixXf weights;
+    Eigen::VectorXf bias;
+    Eigen::MatrixXf grad_weights;
+    Eigen::VectorXf grad_bias;
+    Eigen::MatrixXf grad_input;
+    
+    Linear() :
+        weights(output_dim, input_dim),
+        bias(output_dim),
+        grad_weights(output_dim, input_dim),
+        grad_bias(output_dim),
+        grad_input(max_batch_size, input_dim)
+    
     {
         weights.setRandom();
         bias.setRandom();
@@ -34,12 +40,15 @@ public:
      * @param input Input matrix of shape [batch_size, input_dim]
      * @return Output matrix of shape [batch_size, output_dim]
      */
-    Eigen::Matrix<float, Eigen::Dynamic, output_dim> forward(
-        const Eigen::Matrix<float, Eigen::Dynamic, input_dim> &input) const
+    Eigen::MatrixXf forward(
+        const Eigen::MatrixXf &input) const
     {
         assert(input.rows() <= max_batch_size && "Batch size exceeds maximum batch size");
+        assert(input.cols() == input_dim && "Input dimension mismatch");
 
-        Eigen::Matrix<float, Eigen::Dynamic, output_dim> output;
+        Eigen::MatrixXf output(input.rows(), output_dim);
+        // output.noalias() = input * weights.transpose(); // TODO: add docs
+        // output.rowwise() += bias.transpose();
         output = (input * weights.transpose()) + bias.replicate(1, input.rows()).transpose();
         return output;
     }
@@ -50,9 +59,9 @@ public:
      * @param grad_output Gradient of the loss with respect to the output
      * @return Gradient of the loss with respect to the input, of shape [batch_size, input_dim]
      */
-    Eigen::Matrix<float, Eigen::Dynamic, input_dim> backward(
-        const Eigen::Matrix<float, Eigen::Dynamic, input_dim> &input,
-        const Eigen::Matrix<float, Eigen::Dynamic, output_dim> &grad_output)
+    Eigen::MatrixXf backward(
+        const Eigen::MatrixXf &input,
+        const Eigen::MatrixXf &grad_output)
     {
         grad_weights = grad_output.transpose() * input;
         grad_bias = grad_output.colwise().sum();
