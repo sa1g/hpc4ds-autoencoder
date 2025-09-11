@@ -21,5 +21,16 @@ std::vector<std::string> get_filenames(const std::string &path);
  */
 std::tuple<std::vector<std::string>, std::vector<std::string>> random_split_filenames(const std::vector<std::string> &filenames, const int percentage_test, const int seed);
 
+struct experiment_config {
+    std::string train_path;
+    std::string test_path;
+    size_t batch_size;
+    size_t input_dim;
+    size_t hidden_dim;
+    size_t output_dim;
+    float lr;
+    int epoch;
+};
+
 #endif
 // __AUTOENCODER_COMMON_HH__
