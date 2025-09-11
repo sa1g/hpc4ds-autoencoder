@@ -24,3 +24,7 @@ add_subdirectory(model)
 
 # Ensure the main executable (autoencoder) can access the library
 target_link_libraries(autoencoder_lib PUBLIC Eigen3::Eigen)
+target_link_libraries(autoencoder_lib PRIVATE
+    tensorboard_logger
+    protobuf::libprotobuf
+)

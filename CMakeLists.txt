@@ -18,6 +18,11 @@ endif()
 # Enable FetchContent module
 include(FetchContent)
 
+# -----
+# Protobuf (needed for tensorboard)
+# -----
+find_package (protobuf REQUIRED)
+
 # -------------------------------
 # Fetch stb (Single-Header Library)
 # -------------------------------
@@ -74,6 +79,20 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(benchmark)
 
+# ----------------------
+# Fetch TensorboardLogger
+# ----------------------
+
+FetchContent_Declare(
+    tensorboard_logger
+    GIT_REPOSITORY https://github.com/RustingSword/tensorboard_logger.git
+    GIT_TAG        master
+)
+
+# Override options for this dependency
+set(BUILD_TEST OFF CACHE BOOL "Disable tensorboard_logger tests" FORCE)
+
+FetchContent_MakeAvailable(tensorboard_logger)
 
 
 # ----------------------
@@ -93,7 +112,15 @@ target_link_libraries(
   Eigen3::Eigen
   benchmark::benchmark
   autoencoder_lib
+  tensorboard_logger
+  protobuf::libprotobuf
 )
+
+
+
+# target_include_directories(autoencoder_lib PRIVATE
+#     ${tensorboard_logger_SOURCE_DIR}/include
+# )
 
 # ----------------------
 # Enable Testing
