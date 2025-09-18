@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.31)
 
 project(autoencoder)
 
+# Options
+option(WITH_OPENMP "Enable OpenMP" OFF)
+# option(WITH_EIGEN_PARALLEL "Enable Eigen parallelization" OFF)
+
 # Set standard to C++20
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -17,6 +21,9 @@ endif()
 
 # Enable FetchContent module
 include(FetchContent)
+
+find_package(OpenMP REQUIRED)
+
 
 # -----
 # Protobuf (needed for tensorboard)
@@ -94,7 +101,6 @@ set(BUILD_TEST OFF CACHE BOOL "Disable tensorboard_logger tests" FORCE)
 
 FetchContent_MakeAvailable(tensorboard_logger)
 
-
 # ----------------------
 # Add source directory for `autoencoder_lib`
 # ----------------------
@@ -104,6 +110,19 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/src)
 # Add executable
 # ----------------------
 add_executable(${PROJECT_NAME} main.cc)
+
+if(WITH_OPENMP)
+    add_compile_options(-fopenmp)
+    target_link_libraries(${PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX)
+    set_property(TARGET ${PROJECT_NAME} PROPERTY POSITION_INDEPENDENT_CODE ON)
+endif()
+
+# if(WITH_EIGEN_PARALLEL)
+#     target_compile_definitions(${PROJECT_NAME} PRIVATE EIGEN_DONT_PARALLELIZE=OFF)
+# else()
+#     target_compile_definitions(${PROJECT_NAME} PRIVATE EIGEN_DONT_PARALLELIZE=ON)
+# endif()
+
 
 # Link Libraries
 target_link_libraries(

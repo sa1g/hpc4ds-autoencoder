@@ -24,6 +24,8 @@ cmake ..
 make -j<n_cores>
 ```
 
+`cmake .. -DWITH_OPENMP=ON`
+
 ```bash
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build

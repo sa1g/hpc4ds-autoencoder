@@ -11,7 +11,12 @@
 // #include "linear.hh"
 #include "worker.hh"
 
+
+// #include <omp.h>
+
 int main(int argc, char *argv[]) {
+  // omp_set_num_threads(16);
+ 
   ////////////////////////////////////////////////////////
   const experiment_config config = {.train_path = "../data/mnist/train",
                                     .test_path = "../data/mnist/test",
