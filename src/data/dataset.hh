@@ -30,6 +30,7 @@ private:
     int _n_channels{1};
     int _batch_start_index{0};
     int _current_index{0};
+    std::vector<std::string> _full_paths;
 
     const int num_batches;
 
