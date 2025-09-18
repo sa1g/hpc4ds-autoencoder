@@ -2,7 +2,10 @@
 #define __AUTOENCODER_DATASET_HH__
 
 #include <Eigen/Dense>
-// #include <unsupported/Eigen/CXX11/MatrixXf>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <atomic>
 
 /**
  * @brief Dataloader class - used as iterator you get batches of shape [BATCH_SIZE, HEIGHT * WIDTH]. If
@@ -36,6 +39,13 @@ private:
 
     Eigen::MatrixXf _current_batch_data;
 
+    Eigen::MatrixXf _prefetch_buffer;     // holds next batch
+    std::thread _worker;                  // background loader
+    std::mutex _mtx;
+    std::condition_variable _cv;
+    std::atomic<bool> _ready{false};
+    std::atomic<bool> _stop{false};
+
 public:
     Dataloader(const std::string &path, const std::vector<std::string> filenames, const int width, const int height, const int num_images, const int batch_size, const bool shuffle);
 
@@ -45,6 +55,8 @@ public:
     std::vector<std::string> get_filenames() const { return _filenames; }
 
     Eigen::MatrixXf &get_batch();
+    void prefetch_loop();
+    ~Dataloader();
 
     class Iterator
     {
