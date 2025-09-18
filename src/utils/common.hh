@@ -32,5 +32,9 @@ struct experiment_config {
     int epoch;
 };
 
+bool create_directory_if_not_exists(const std::string& path);
+
+std::string get_timestamp_string_with_full_micros();
+
 #endif
 // __AUTOENCODER_COMMON_HH__

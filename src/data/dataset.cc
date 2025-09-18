@@ -10,8 +10,6 @@
 #include <algorithm>
 #include <iostream>
 
-#include <omp.h>
-
 Dataloader::Dataloader(const std::string &path,
                        const std::vector<std::string> filenames,
                        const int width, const int height, const int num_images,
@@ -55,8 +53,6 @@ Eigen::MatrixXf &Dataloader::get_batch() {
       continue;
     }
 
-    // const std::string filename = _path + "/" + _filenames[index] +
-    // _extension;
     const std::string &filename = _full_paths[index];
 
     unsigned char *data =
@@ -69,13 +65,18 @@ Eigen::MatrixXf &Dataloader::get_batch() {
       continue;
     }
 
-    // // Copy the flattened image data directly into _current_batch_data(b)
-    // for (int i = 0; i < _height * _width; ++i) {
-    //   _current_batch_data(b, i) =
-    //       static_cast<float>(data[i]) / 255.0f; // Normalize the pixel value
-    // }
+    // Copy the flattened image data directly into _current_batch_data(b)
+    for (int i = 0; i < _height * _width; ++i) {
+      _current_batch_data(b, i) =
+          static_cast<float>(data[i]) / 255.0f; // Normalize the pixel value
+    }
 
-    Eigen::Map<Eigen::VectorXf>(_current_batch_data.row(b).data(), _width * _height) = Eigen::Map<Eigen::Array<unsigned char, Eigen::Dynamic, 1>>(data, _width * _height).cast<float>() / 255.0f;
+    // Eigen::Map<Eigen::VectorXf>(_current_batch_data.row(b).data(),
+                                // _width * _height) =
+        // Eigen::Map<Eigen::Array<unsigned char, Eigen::Dynamic, 1>>(
+            // data, _width * _height)
+            // .cast<float>() /
+        // 255.0f;
 
     // Cleanup
     stbi_image_free(data);

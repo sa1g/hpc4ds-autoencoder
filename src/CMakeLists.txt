@@ -27,5 +27,7 @@ target_link_libraries(autoencoder_lib PUBLIC Eigen3::Eigen)
 target_link_libraries(autoencoder_lib PRIVATE
     tensorboard_logger
     protobuf::libprotobuf
-    OpenMP::OpenMP_CXX
 )
+if(WITH_OPENMP)
+    target_link_libraries(autoencoder_lib PRIVATE OpenMP::OpenMP_CXX)
+endif()

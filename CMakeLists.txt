@@ -22,8 +22,9 @@ endif()
 # Enable FetchContent module
 include(FetchContent)
 
-find_package(OpenMP REQUIRED)
-
+if(WITH_OPENMP)
+  find_package(OpenMP REQUIRED)
+endif()
 
 # -----
 # Protobuf (needed for tensorboard)
