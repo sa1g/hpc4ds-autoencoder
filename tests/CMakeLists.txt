@@ -58,3 +58,8 @@ target_link_libraries(mse_tests PRIVATE gtest_main autoencoder_lib gtest)
 gtest_discover_tests(mse_tests
     PROPERTIES LABELS "autoencoder_tests"
 )
+
+# Test for model
+add_executable(model_tests model_tests.cc)
+target_link_libraries(model_tests PRIVATE gtest_main autoencoder_lib gtest)
+gtest_discover_tests(model_tests PROPERTIES LABELS "autoencoder_tests")

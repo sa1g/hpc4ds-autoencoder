@@ -4,6 +4,11 @@
 #include "linear.hh"
 #include "relu.hh"
 #include <Eigen/Dense>
+#include <unordered_map>
+
+#include <fstream>
+#include <unordered_map>
+
 /**
  * Simple autoencoder model with linear input and output.
  *
@@ -61,6 +66,86 @@ public:
     Eigen::MatrixXf grad_input = encoder.backward(input, grad_activated_hidden);
 
     return grad_input;
+  }
+
+  std::unordered_map<std::string, Eigen::MatrixXf> get_weights() {
+    // We have an encoder and a decoder. We need to store both weights and bias
+    // std::unordered_map<std::string, Eigen::MatrixXf> weights
+
+    return {
+        {"encoder_w", encoder.weights},
+        {"encoder_b", encoder.bias},
+        {"decoder_w", decoder.weights},
+        {"decoder_b", decoder.bias},
+    };
+  }
+
+  void set_weights(std::unordered_map<std::string, Eigen::MatrixXf> weights) {
+    encoder.weights = weights["encoder_w"];
+    encoder.bias = weights["encoder_b"];
+    encoder.grad_weights.setZero();
+    encoder.grad_bias.setZero();
+    encoder.grad_input.setZero();
+
+    decoder.weights = weights["decoder_w"];
+    decoder.bias = weights["decoder_b"];
+    encoder.grad_weights.setZero();
+    encoder.grad_bias.setZero();
+    encoder.grad_input.setZero();
+  }
+
+  void save_weights(std::string path) {
+    auto weights = get_weights();
+    std::ofstream out(path, std::ios::binary);
+    if (!out) {
+      throw std::runtime_error("Failed to open file for writing: " + path);
+    }
+
+    // Write each matrix to the file
+    for (const auto &[name, matrix] : weights) {
+      // Write the name (as a null-terminated string)
+      out.write(name.c_str(), name.size() + 1);
+
+      // Write the dimensions
+      int rows = matrix.rows();
+      int cols = matrix.cols();
+      out.write(reinterpret_cast<const char *>(&rows), sizeof(int));
+      out.write(reinterpret_cast<const char *>(&cols), sizeof(int));
+
+      // Write the matrix data
+      out.write(reinterpret_cast<const char *>(matrix.data()),
+                rows * cols * sizeof(float));
+    }
+  }
+
+  std::unordered_map<std::string, Eigen::MatrixXf>
+  load_weights(std::string path) {
+    std::ifstream in(path, std::ios::binary);
+    if (!in) {
+      throw std::runtime_error("Failed to open file for reading: " + path);
+    }
+
+    std::unordered_map<std::string, Eigen::MatrixXf> weights;
+
+    while (in.peek() != EOF) {
+      // Read the name (null-terminated string)
+      std::string name;
+      std::getline(in, name, '\0');
+
+      // Read the dimensions
+      int rows, cols;
+      in.read(reinterpret_cast<char *>(&rows), sizeof(int));
+      in.read(reinterpret_cast<char *>(&cols), sizeof(int));
+
+      // Read the matrix data
+      Eigen::MatrixXf matrix(rows, cols);
+      in.read(reinterpret_cast<char *>(matrix.data()),
+              rows * cols * sizeof(float));
+
+      weights[name] = matrix;
+    }
+
+    return weights;
   }
 };
 
