@@ -71,13 +71,6 @@ Eigen::MatrixXf &Dataloader::get_batch() {
           static_cast<float>(data[i]) / 255.0f; // Normalize the pixel value
     }
 
-    // Eigen::Map<Eigen::VectorXf>(_current_batch_data.row(b).data(),
-                                // _width * _height) =
-        // Eigen::Map<Eigen::Array<unsigned char, Eigen::Dynamic, 1>>(
-            // data, _width * _height)
-            // .cast<float>() /
-        // 255.0f;
-
     // Cleanup
     stbi_image_free(data);
   }
