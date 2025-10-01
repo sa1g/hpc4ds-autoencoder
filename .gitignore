@@ -44,3 +44,5 @@ data/svhn/
 *.exe
 *.out
 *.app
+cpp_env.sif
+*.sif
