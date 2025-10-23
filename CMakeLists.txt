@@ -30,6 +30,7 @@ endif()
 # Protobuf (needed for tensorboard)
 # -----
 find_package (protobuf REQUIRED)
+find_package(absl REQUIRED)
 
 # -------------------------------
 # Fetch stb (Single-Header Library)
@@ -134,6 +135,10 @@ target_link_libraries(
   autoencoder_lib
   tensorboard_logger
   protobuf::libprotobuf
+  absl::base
+  absl::hash
+  absl::raw_hash_set
+  absl::strings
 )
 
 
