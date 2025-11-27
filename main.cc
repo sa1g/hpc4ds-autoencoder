@@ -4,8 +4,8 @@
 #include "worker.hh"
 
 int main(int argc, char *argv[]) {
-  const experiment_config config = {.train_path = "../data/mnist/train",
-                                    .test_path = "../data/mnist/test",
+  const experiment_config config = {.train_path = "data/mnist/train",
+                                    .test_path = "data/mnist/test",
                                     .batch_size = 256,
                                     .input_dim = 28 * 28,
                                     .hidden_dim = 256,

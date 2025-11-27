@@ -23,15 +23,18 @@ Most libraries are dynamically linked, so everything must be run inside of singu
 Optional flag: `WITH_OPENMP`, either `ON` or not set, to enable threading with omp.
 
 ```bash
-singularity exec cpp_env.sif cmake -B build -DCMAKE_BUILD_TYPE=Release
-singularity exec cpp_env.sif cmake --build build/ -j$(nproc)
-cd build
-singularity exec cpp_env.sif ./autoencoder
+singularity exec singularity.sif cmake -B build -DCMAKE_BUILD_TYPE=Release
+singularity exec singularity.sif cmake --build build/ -j$(nproc)
+# cd build
+# singularity exec singularity.sif ./autoencoder
 ```
+## Running
+After compiling, using MPI (or directly inside of singularity if you aren't using it),
+we run the project with an "Hybrid MPI" aka MPI Interoperability:
 
-
-// mpirun -np 32 singularity exec my_container.sif ./my_app
-
+```bash
+mpirun -np 1 singularity exec singularity.sif ./build/autoencoder 
+```
 https://docs.sylabs.io/guides/3.3/user-guide/mpi.html
 
 ## About
