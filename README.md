@@ -16,7 +16,19 @@ apptainer build singularity.sif singularity.def
 
 Most libraries are dynamically linked, so everything must be run inside of singularity.
 
-Optional flag: `WITH_OPENMP`, either `ON` or not set, to enable threading with omp.
+Optional flags:
+
+- `WITH_OPENMP`, `ON` to enable threading with omp.
+- `WITH_MPI`, `ON` to enable MPI support.
+
+```bash
+# example with MPI enabled
+cmake -S . -B build \
+  -DWITH_MPI=ON \
+  -DCMAKE_BUILD_TYPE=RelWithDebInfo
+
+cmake --build build -j
+```
 
 ```bash
 singularity exec singularity.sif cmake -B build -DCMAKE_BUILD_TYPE=Release
