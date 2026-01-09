@@ -1,5 +1,11 @@
 #include <vector>
 #include <string>
+
+// TODO: remove this one
+#ifdef USE_MPI
+#include <mpi.h>
+#endif
+
 #ifndef __AUTOENCODER_COMMON_HH__
 #define __AUTOENCODER_COMMON_HH__
 
@@ -21,7 +27,8 @@ std::vector<std::string> get_filenames(const std::string &path);
  */
 std::tuple<std::vector<std::string>, std::vector<std::string>> random_split_filenames(const std::vector<std::string> &filenames, const int percentage_test, const int seed);
 
-struct experiment_config {
+struct experiment_config
+{
     std::string train_path;
     std::string test_path;
     size_t batch_size;
@@ -32,7 +39,7 @@ struct experiment_config {
     int epoch;
 };
 
-bool create_directory_if_not_exists(const std::string& path);
+bool create_directory_if_not_exists(const std::string &path);
 
 std::string get_timestamp_string_with_full_micros();
 

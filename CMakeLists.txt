@@ -26,6 +26,15 @@ if(WITH_OPENMP)
   find_package(OpenMP REQUIRED)
 endif()
 
+option(WITH_MPI "Enable MPI support" OFF)
+
+# -----
+# MPI if enabled
+# -----
+if(WITH_MPI)
+  find_package(MPI REQUIRED)
+endif()
+
 # -----
 # Protobuf (needed for tensorboard)
 # -----
@@ -140,6 +149,11 @@ target_link_libraries(
   absl::raw_hash_set
   absl::strings
 )
+
+if(WITH_MPI)
+  target_link_libraries(${PROJECT_NAME} PRIVATE MPI::MPI_CXX)
+  target_compile_definitions(${PROJECT_NAME} PRIVATE USE_MPI)
+endif()
 
 
 

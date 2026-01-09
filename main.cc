@@ -1,9 +1,15 @@
 #include <iostream>
 
+// TODO: remove this one
+#ifdef USE_MPI
+#include <mpi.h>
+#endif
+
 #include "common.hh"
 #include "worker.hh"
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
   const experiment_config config = {.train_path = "data/mnist/train",
                                     .test_path = "data/mnist/test",
                                     .batch_size = 256,

@@ -32,6 +32,12 @@ target_link_libraries(autoencoder_lib PRIVATE
     absl::raw_hash_set
     absl::strings
 )
+
 if(WITH_OPENMP)
     target_link_libraries(autoencoder_lib PRIVATE OpenMP::OpenMP_CXX)
+endif()
+
+if(WITH_MPI)
+  target_link_libraries(autoencoder_lib PUBLIC MPI::MPI_CXX)
+  target_compile_definitions(autoencoder_lib PRIVATE USE_MPI)
 endif()
