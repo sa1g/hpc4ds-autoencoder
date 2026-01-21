@@ -27,6 +27,17 @@ std::vector<std::string> get_filenames(const std::string &path);
  */
 std::tuple<std::vector<std::string>, std::vector<std::string>> random_split_filenames(const std::vector<std::string> &filenames, const int percentage_test, const int seed);
 
+/**
+ * Distributes a list of filenames across MPI processes (Data Sharding)
+ * 
+ * @param filenames The complete vector of all available filenames.
+ * @param rank The rank of the current MPI process (0 to size-1).
+ * @param size The total number of MPI processes in the communicator.
+ * @return The vector containing the subset of filenames assigned to this rank.
+ */
+std::vector<std::string> split_data(const std::vector<std::string>& filenames, 
+                                         int rank, int size);
+
 struct experiment_config
 {
     std::string train_path;

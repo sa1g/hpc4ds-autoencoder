@@ -7,7 +7,8 @@ void auto_worker(const experiment_config &config,
                  std::vector<std::string> &train_filenames,
                  std::vector<std::string> &eval_filenames,
                  std::vector<std::string> &test_filenames,
-                 std::string experiment_name, int worker_id, std::string timestamp);
+                 std::string experiment_name, int worker_id, int world_size,
+                 std::string timestamp);
 
 // void auto_worker(const experiment_config &config);
 

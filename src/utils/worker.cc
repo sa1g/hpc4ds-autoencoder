@@ -9,11 +9,17 @@
 #include <iostream>
 #include <string>
 
+// TODO: remove this one
+#ifdef USE_MPI
+#include <mpi.h>
+#endif
+
 void auto_worker(const experiment_config &config,
                  std::vector<std::string> &train_filenames,
                  std::vector<std::string> &eval_filenames,
                  std::vector<std::string> &test_filenames,
-                 std::string experiment_name, int worker_id, std::string timestamp) {
+                 std::string experiment_name, int worker_id, int world_size,
+                 std::string timestamp) {
   // -- DATALOADERS SETUP
   Dataloader train_dataloader(config.train_path, train_filenames, 28, 28,
                               train_filenames.size(), config.batch_size, true);
@@ -50,6 +56,39 @@ void auto_worker(const experiment_config &config,
     // break;
   }
 
+  // Averaging weights before testing
+
+  // 1. get local weights
+  auto local_weights = model.get_weights();
+  auto averaged_weights = local_weights; // create same structure
+
+  for (auto &kv : local_weights) {
+      auto &name = kv.first;
+      auto &mat = kv.second;
+
+      // flatten matrix
+      int count = mat.rows() * mat.cols();
+      std::vector<float> sendbuf(mat.data(), mat.data() + count);
+      std::vector<float> recvbuf(count);
+
+      // 2. sum all workers' weights
+      MPI_Allreduce(sendbuf.data(), recvbuf.data(), count, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
+
+      // 3. convert to Eigen and average
+      Eigen::Map<Eigen::MatrixXf> averaged_mat(recvbuf.data(), mat.rows(), mat.cols());
+      averaged_mat /= static_cast<float>(world_size);
+
+      averaged_weights[name] = averaged_mat;
+  }
+
+  // 4. set averaged weights into model
+  model.set_weights(averaged_weights);
+
+  if (worker_id == 0) {
+      std::cout << "[MPI] Averaged weights across " << world_size << " workers.\n";
+  }
+
+  // TESTING
   float test_loss = test("Test: ", test_dataloader, model, criterion);
   logger.add_scalar("test_loss", config.epoch, test_loss);
 }

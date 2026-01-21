@@ -57,6 +57,33 @@ random_split_filenames(const std::vector<std::string> &filenames,
   return {train_filenames, test_filenames};
 }
 
+std::vector<std::string> split_data(const std::vector<std::string>& filenames, 
+                                         int rank, int size) {
+  size_t total_files = filenames.size();
+  
+  // Calculate basic files per rank and the remainder
+  size_t files_per_rank = total_files / size;
+  size_t remainder = total_files % size;
+
+  // Calculate the start index for this rank.
+  // Ranks lower than 'remainder' get an extra file, so their start 
+  // offset increases by 1 for each preceding rank.
+  size_t start = rank * files_per_rank + std::min((size_t)rank, remainder);
+    
+  // Calculate the number of files for this specific rank.
+  size_t count = files_per_rank + (static_cast<size_t>(rank) < remainder ? 1 : 0);
+
+  // Compute the final list to return
+  std::vector<std::string> sharded_list;
+  if (start < total_files) {
+      auto begin_it = filenames.begin() + start;
+      auto end_it = filenames.begin() + std::min(start + count, total_files);
+      sharded_list.assign(begin_it, end_it);
+  }
+
+  return sharded_list;
+}
+
 bool create_directory_if_not_exists(const std::string &path) {
   try {
     if (fs::exists(path)) {

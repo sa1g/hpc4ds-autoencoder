@@ -35,8 +35,12 @@ prepare_svhn:
 
 # Create Python virtual environment and install requirements
 venv: 
-	@echo "Creating Python virtual environment..."
-	python3 -m venv $(PYTHON_VENV)
+	@echo "Creating Python virtual environment without PIP..."
+	python3 -m venv --without-pip $(PYTHON_VENV)
+	@echo "Downloading PIP-installing script manually..."
+	curl -sS https://bootstrap.pypa.io/pip/3.8/get-pip.py -o get-pip.py
+	@echo "Installing PIP..."
+	$(PYTHON_VENV)/bin/python3 get-pip.py
 	@echo "Installing dependencies..."
 	$(PYTHON_VENV)/bin/pip install -r data/requirements.txt
 
@@ -57,6 +61,7 @@ cleanup:
 	rm $(DATA_DIR)/extra_32x32.mat
 	@echo "Removing virtual environment..."
 	rm -rf $(PYTHON_VENV)
+	rm get-pip.py
 
 # Clean up the dataset files
 clean_data:
