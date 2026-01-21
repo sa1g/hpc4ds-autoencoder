@@ -27,6 +27,7 @@ if(WITH_OPENMP)
 endif()
 
 option(WITH_MPI "Enable MPI support" OFF)
+option(DATASET_NAME "Set dataset name, either `mnist` or `svhn`" "mnist")
 
 # -----
 # MPI if enabled
@@ -152,7 +153,7 @@ target_link_libraries(
 
 if(WITH_MPI)
   target_link_libraries(${PROJECT_NAME} PRIVATE MPI::MPI_CXX)
-  target_compile_definitions(${PROJECT_NAME} PRIVATE USE_MPI)
+  target_compile_definitions(${PROJECT_NAME} PRIVATE USE_MPI DATASET_NAME="${DATASET_NAME}") 
 endif()
 
 

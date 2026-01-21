@@ -5,6 +5,10 @@
 #include <mpi.h>
 #endif
 
+#ifndef DATASET_NAME
+#define DATASET_NAME "mnist"
+#endif
+
 #include "common.hh"
 #include "worker.hh"
 
@@ -23,8 +27,8 @@ int main(int argc, char *argv[])
 
   // Autoencoder code
 
-  const experiment_config config = {.train_path = "data/svhn/train",
-                                    .test_path = "data/svhn/test",
+  const experiment_config config = {.train_path = std::string("data/") + DATASET_NAME + "/train",
+                                    .test_path = std::string("data/") + DATASET_NAME + "/test",
                                     .batch_size = 256,
                                     .input_dim = 28 * 28,
                                     .hidden_dim = 256,
