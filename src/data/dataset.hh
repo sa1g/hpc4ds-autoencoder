@@ -39,7 +39,8 @@ private:
 
 public:
   Dataloader(const std::string &path, const std::vector<std::string> filenames,
-             const int width, const int height, const int num_images, const int batch_size, const bool shuffle);
+             const int width, const int height, const int num_images,
+             const int batch_size, const bool shuffle);
 
   int get_num_batches() const { return num_batches; }
   bool is_shuffled() const { return _shuffle; }

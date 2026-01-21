@@ -26,11 +26,9 @@ int main(int argc, char *argv[]) {
   MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
 
   // Autoencoder code
-  const std::string dataset_name = DATASET_NAME;
-  
   const experiment_config config = {
-      .train_path = "data/" + dataset_name + "/train",
-      .test_path = "data/" + dataset_name + "/test",
+      .train_path = std::string("data/") + DATASET_NAME + "/train",
+      .test_path = std::string("data/") + DATASET_NAME + "/test",
       .batch_size = 256,
       .input_dim = 28 * 28,
       .hidden_dim = 256,

@@ -38,7 +38,6 @@ Dataloader::Dataloader(const std::string &path,
 }
 
 Eigen::MatrixXf &Dataloader::get_batch() {
-
 #pragma omp parallel for
   for (int b = 0; b < _batch_size; ++b) {
     int index =
@@ -50,8 +49,9 @@ Eigen::MatrixXf &Dataloader::get_batch() {
 
     const std::string &filename = _full_paths[index];
 
+    int w{_width}, h{_height}, n{_n_channels};
     unsigned char *data =
-        stbi_load(filename.c_str(), &_width, &_height, &_n_channels, 0);
+        stbi_load(filename.c_str(), &w, &h, &n, 0);
 
     if (!data) {
 #pragma omp critical
