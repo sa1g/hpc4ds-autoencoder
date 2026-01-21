@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string_view>
 
 // TODO: remove this one
 #ifdef USE_MPI
@@ -12,8 +13,7 @@
 #include "common.hh"
 #include "worker.hh"
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 
   // MPI initialization blocks
 
@@ -26,20 +26,34 @@ int main(int argc, char *argv[])
   MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
 
   // Autoencoder code
+  const std::string dataset_name = DATASET_NAME;
+  int n_channels = 0;
 
-  const experiment_config config = {.train_path = std::string("data/") + DATASET_NAME + "/train",
-                                    .test_path = std::string("data/") + DATASET_NAME + "/test",
-                                    .batch_size = 256,
-                                    .input_dim = 28 * 28,
-                                    .hidden_dim = 256,
-                                    .output_dim = 28 * 28,
-                                    .lr = 0.01f,
-                                    .epoch = 20};
+  if (dataset_name == "mnist") {
+    n_channels = 1;
+  } else if (dataset_name == "svhn") {
+    n_channels = 3;
+  } else {
+    // Handle error at runtime
+    throw std::runtime_error("Unknown DATASET_NAME: " +
+                             std::string(dataset_name));
+  }
+
+  const experiment_config config = {
+      .train_path = "data/" + dataset_name + "/train",
+      .test_path = "data/" + dataset_name + "/test",
+      .n_channels = n_channels,
+      .batch_size = 256,
+      .input_dim = 28 * 28,
+      .hidden_dim = 256,
+      .output_dim = 28 * 28,
+      .lr = 0.01f,
+      .epoch = 20};
 
   ///////////////////////////////////////////////////////
 
   std::vector<std::string> filenames = get_filenames(config.train_path);
-  
+
   // For workloads shared on different nodes, it's important the seed used here
   // stays the same, otherwise the data used in testing might end up in the
   // training data used by some other node
@@ -58,17 +72,17 @@ int main(int argc, char *argv[])
 
   // Printing the portion of data we got
   if (train_filenames.size() > 0) {
-      std::cout << "[Rank " << my_rank << "/" << comm_sz << "] Assigned " 
-              << my_train.size() << " training files (" 
-              << (int)(1000.0 * my_train.size() / train_filenames.size()) / 10.0 
+    std::cout << "[Rank " << my_rank << "/" << comm_sz << "] Assigned "
+              << my_train.size() << " training files ("
+              << (int)(1000.0 * my_train.size() / train_filenames.size()) / 10.0
               << "% of total)" << std::endl;
   }
 
-  auto_worker(config, my_train, my_eval, my_test, "prove",
-              my_rank, comm_sz, get_timestamp_string_with_full_micros());
+  auto_worker(config, my_train, my_eval, my_test, "prove", my_rank, comm_sz,
+              get_timestamp_string_with_full_micros());
 
   std::cout << "Done!" << std::endl;
-  
+
   // MPI teardown
   MPI_Finalize();
 

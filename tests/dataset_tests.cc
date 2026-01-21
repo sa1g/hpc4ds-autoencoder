@@ -1,10 +1,11 @@
 #include <gtest/gtest.h>
 #include <Eigen/Dense>
-
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
+#include <filesystem>
 
 #include "dataset.hh"
+
+#include "stb_image.h"
+#include "stb_image_write.h"
 
 // Mock image data for testing
 std::vector<unsigned char> create_mock_image(int width, int height)
@@ -62,7 +63,7 @@ protected:
 // test constructor
 TEST_F(DataloaderTest, ConstructorTest)
 {
-    Dataloader dataloader(path, filenames, width, height, num_images, batch_size, shuffle);
+    Dataloader dataloader(path, filenames, width, height, 1, num_images, batch_size, shuffle);
 
     // Check if the #batches is calculated correctly
     EXPECT_EQ(dataloader.get_num_batches(), (num_images + batch_size - 1) / batch_size);
@@ -77,7 +78,7 @@ TEST_F(DataloaderTest, ConstructorTest)
 // test get_batch
 TEST_F(DataloaderTest, GetBatchTest)
 {
-    Dataloader dataloader(path, filenames, width, height, num_images, batch_size, shuffle);
+    Dataloader dataloader(path, filenames, width, height, 1, num_images, batch_size, shuffle);
 
     // Load the first batch
     Eigen::MatrixXf batch = dataloader.get_batch();
@@ -102,7 +103,7 @@ TEST_F(DataloaderTest, GetBatchTest)
 // test iterator
 TEST_F(DataloaderTest, IteratorTest)
 {
-    Dataloader dataloader(path, filenames, width, height, num_images, batch_size, shuffle);
+    Dataloader dataloader(path, filenames, width, height, 1, num_images, batch_size, shuffle);
 
     std::cerr << dataloader.get_num_batches() << std::endl;
 
@@ -121,7 +122,7 @@ TEST_F(DataloaderTest, IteratorTest)
 // test shuffling
 TEST_F(DataloaderTest, ShuffleTest){
     bool shuffle = true;
-    Dataloader dataloader(path, filenames, width, height, num_images, batch_size, shuffle);
+    Dataloader dataloader(path, filenames, width, height, 1, num_images, batch_size, shuffle);
 
     // Check if filenames are shuffled
     bool is_shuffled = false;
@@ -133,5 +134,115 @@ TEST_F(DataloaderTest, ShuffleTest){
     }
     EXPECT_TRUE(is_shuffled);
 }
+
+TEST_F(DataloaderTest, SaveImageTest)
+{   
+    Dataloader dataloader(path, filenames, width, height, 1, num_images, batch_size, shuffle);
+    
+    // Load the first batch
+    Eigen::MatrixXf batch = dataloader.get_batch();
+    
+    // Check the shape of the batch matrix
+    EXPECT_EQ(batch.rows(), batch_size);
+    EXPECT_EQ(batch.cols(), width * height);
+    
+    // Save the image
+    std::string test_image_path = "test_img.png";
+    dataloader.save_batch_image(batch, 0, test_image_path);
+    
+    // --- VERIFICATION SECTION ---
+    
+    // 1. Check if file was created
+    EXPECT_TRUE(std::filesystem::exists(test_image_path)) 
+        << "Image file was not created: " << test_image_path;
+    
+    // 2. Load the saved image back using stb_image
+    int img_width, img_height, img_channels;
+    unsigned char* img_data = stbi_load(test_image_path.c_str(), 
+                                        &img_width, &img_height, 
+                                        &img_channels, 0);
+    
+    // Verify image loaded successfully
+    ASSERT_NE(img_data, nullptr) 
+        << "Failed to load saved image. stbi_failure_reason: " 
+        << (stbi_failure_reason() ? stbi_failure_reason() : "Unknown error");
+    
+    // 3. Check dimensions match
+    EXPECT_EQ(img_width, width) << "Saved image width doesn't match";
+    EXPECT_EQ(img_height, height) << "Saved image height doesn't match";
+    EXPECT_EQ(img_channels, 1) << "Expected grayscale image (1 channel)";
+    
+    // 4. Verify pixel values (normalized comparison)
+    // Convert Eigen batch row to float array for comparison
+    Eigen::VectorXf original_pixels = batch.row(0);  // First image in batch
+    
+    float max_diff = 0.0f;
+    float tolerance = 1.0f / 255.0f;  // Allow for 1 pixel value difference due to quantization
+    
+    for (int i = 0; i < width * height; i++) {
+        // Convert saved pixel from [0, 255] to [0, 1] for comparison
+        float saved_pixel = img_data[i] / 255.0f;
+        float original_pixel = original_pixels[i];
+        
+        float diff = std::abs(saved_pixel - original_pixel);
+        max_diff = std::max(max_diff, diff);
+        
+        // Optional: Check each pixel individually (more verbose)
+        // EXPECT_NEAR(saved_pixel, original_pixel, tolerance) 
+        //     << "Pixel mismatch at position " << i;
+    }
+    
+    // Check overall similarity
+    EXPECT_LT(max_diff, tolerance) 
+        << "Saved image differs from original. Max diff: " << max_diff;
+    
+    // 5. Optional: Compare histogram statistics
+    float original_mean = original_pixels.mean();
+    float saved_mean = 0.0f;
+    for (int i = 0; i < width * height; i++) {
+        saved_mean += img_data[i] / 255.0f;
+    }
+    saved_mean /= (width * height);
+    
+    EXPECT_NEAR(original_mean, saved_mean, 0.01f) 
+        << "Mean pixel values differ significantly";
+    
+    // 6. Cleanup
+    stbi_image_free(img_data);
+    
+    // Optional: Clean up test file
+    std::filesystem::remove(test_image_path);
+    
+    // 7. Additional verification: Test multiple images in batch
+    for (int i = 0; i < std::min(3, batch_size); i++) {
+        std::string multi_img_path = "test_img_" + std::to_string(i) + ".png";
+        dataloader.save_batch_image(batch, i, multi_img_path);
+        
+        // Quick check - just verify file exists and has correct size
+        EXPECT_TRUE(std::filesystem::exists(multi_img_path));
+        EXPECT_GT(std::filesystem::file_size(multi_img_path), 0);
+        
+        // Clean up
+        std::filesystem::remove(multi_img_path);
+    }
+}
+
+// TEST_F(DataloaderTest, SaveImageTest)
+// {   
+//     Dataloader dataloader(path, filenames, width, height, 1, num_images, batch_size, shuffle);
+
+//     // Load the first batch
+//     // const 
+//     Eigen::MatrixXf batch = dataloader.get_batch();
+
+//     // Check the shape of the batch matrix
+//     EXPECT_EQ(batch.rows(), batch_size);
+//     EXPECT_EQ(batch.cols(), width * height);
+
+//     dataloader.save_batch_image(batch, 0, "test_img.png");
+
+
+
+// }
 
 // TODO: Add tests for edge cases as this is not a complete test suite - rn we are covering just the basics

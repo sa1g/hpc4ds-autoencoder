@@ -21,11 +21,11 @@ void auto_worker(const experiment_config &config,
                  std::string experiment_name, int worker_id, int world_size,
                  std::string timestamp) {
   // -- DATALOADERS SETUP
-  Dataloader train_dataloader(config.train_path, train_filenames, 28, 28,
+  Dataloader train_dataloader(config.train_path, train_filenames, 28, 28, config.n_channels,
                               train_filenames.size(), config.batch_size, true);
-  Dataloader eval_dataloader(config.train_path, eval_filenames, 28, 28,
+  Dataloader eval_dataloader(config.train_path, eval_filenames, 28, 28, config.n_channels,
                              eval_filenames.size(), config.batch_size, false);
-  Dataloader test_dataloader(config.test_path, test_filenames, 28, 28,
+  Dataloader test_dataloader(config.test_path, test_filenames, 28, 28, config.n_channels,
                              test_filenames.size(), config.batch_size, false);
 
   // -- MODEL, CRITERION SETUP

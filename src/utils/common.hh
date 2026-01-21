@@ -42,6 +42,7 @@ struct experiment_config
 {
     std::string train_path;
     std::string test_path;
+    int n_channels;
     size_t batch_size;
     size_t input_dim;
     size_t hidden_dim;
