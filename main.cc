@@ -27,22 +27,10 @@ int main(int argc, char *argv[]) {
 
   // Autoencoder code
   const std::string dataset_name = DATASET_NAME;
-  int n_channels = 0;
-
-  if (dataset_name == "mnist") {
-    n_channels = 1;
-  } else if (dataset_name == "svhn") {
-    n_channels = 3;
-  } else {
-    // Handle error at runtime
-    throw std::runtime_error("Unknown DATASET_NAME: " +
-                             std::string(dataset_name));
-  }
-
+  
   const experiment_config config = {
       .train_path = "data/" + dataset_name + "/train",
       .test_path = "data/" + dataset_name + "/test",
-      .n_channels = n_channels,
       .batch_size = 256,
       .input_dim = 28 * 28,
       .hidden_dim = 256,

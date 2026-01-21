@@ -23,12 +23,12 @@ private:
   std::vector<std::string> _filenames;
   int _width;
   int _height;
+  int _n_channels{1};
   const int _num_images;
   const std::string _path;
   const int _batch_size;
   const std::string _extension{".png"};
   const bool _shuffle;
-  int _n_channels{0};
   int _batch_start_index{0};
   int _current_index{0};
   std::vector<std::string> _full_paths;
@@ -39,8 +39,7 @@ private:
 
 public:
   Dataloader(const std::string &path, const std::vector<std::string> filenames,
-             const int width, const int height, const int n_channels,
-             const int num_images, const int batch_size, const bool shuffle);
+             const int width, const int height, const int num_images, const int batch_size, const bool shuffle);
 
   int get_num_batches() const { return num_batches; }
   bool is_shuffled() const { return _shuffle; }

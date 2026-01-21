@@ -21,11 +21,11 @@ void auto_worker(const experiment_config &config,
                  std::string experiment_name, int worker_id, int world_size,
                  std::string timestamp) {
   // -- DATALOADERS SETUP
-  Dataloader train_dataloader(config.train_path, train_filenames, 28, 28, config.n_channels,
+  Dataloader train_dataloader(config.train_path, train_filenames, 28, 28,
                               train_filenames.size(), config.batch_size, true);
-  Dataloader eval_dataloader(config.train_path, eval_filenames, 28, 28, config.n_channels,
+  Dataloader eval_dataloader(config.train_path, eval_filenames, 28, 28,
                              eval_filenames.size(), config.batch_size, false);
-  Dataloader test_dataloader(config.test_path, test_filenames, 28, 28, config.n_channels,
+  Dataloader test_dataloader(config.test_path, test_filenames, 28, 28,
                              test_filenames.size(), config.batch_size, false);
 
   // -- MODEL, CRITERION SETUP
@@ -36,10 +36,12 @@ void auto_worker(const experiment_config &config,
 
   // -- TensorBoardLogger
   create_directory_if_not_exists("../runs/");
-  
-  std::string logger_path = "../runs/" + experiment_name + "_" + std::to_string(worker_id) + "_" + timestamp;//"/tfevents.pb";
+
+  std::string logger_path = "../runs/" + experiment_name + "_" +
+                            std::to_string(worker_id) + "_" +
+                            timestamp; //"/tfevents.pb";
   create_directory_if_not_exists(logger_path);
-  
+
   TensorBoardLogger logger(logger_path + "/tfevents.pb");
 
   // -- TRAINING
@@ -63,29 +65,32 @@ void auto_worker(const experiment_config &config,
   auto averaged_weights = local_weights; // create same structure
 
   for (auto &kv : local_weights) {
-      auto &name = kv.first;
-      auto &mat = kv.second;
+    auto &name = kv.first;
+    auto &mat = kv.second;
 
-      // flatten matrix
-      int count = mat.rows() * mat.cols();
-      std::vector<float> sendbuf(mat.data(), mat.data() + count);
-      std::vector<float> recvbuf(count);
+    // flatten matrix
+    int count = mat.rows() * mat.cols();
+    std::vector<float> sendbuf(mat.data(), mat.data() + count);
+    std::vector<float> recvbuf(count);
 
-      // 2. sum all workers' weights
-      MPI_Allreduce(sendbuf.data(), recvbuf.data(), count, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
+    // 2. sum all workers' weights
+    MPI_Allreduce(sendbuf.data(), recvbuf.data(), count, MPI_FLOAT, MPI_SUM,
+                  MPI_COMM_WORLD);
 
-      // 3. convert to Eigen and average
-      Eigen::Map<Eigen::MatrixXf> averaged_mat(recvbuf.data(), mat.rows(), mat.cols());
-      averaged_mat /= static_cast<float>(world_size);
+    // 3. convert to Eigen and average
+    Eigen::Map<Eigen::MatrixXf> averaged_mat(recvbuf.data(), mat.rows(),
+                                             mat.cols());
+    averaged_mat /= static_cast<float>(world_size);
 
-      averaged_weights[name] = averaged_mat;
+    averaged_weights[name] = averaged_mat;
   }
 
   // 4. set averaged weights into model
   model.set_weights(averaged_weights);
 
   if (worker_id == 0) {
-      std::cout << "[MPI] Averaged weights across " << world_size << " workers.\n";
+    std::cout << "[MPI] Averaged weights across " << world_size
+              << " workers.\n";
   }
 
   // TESTING

@@ -10,11 +10,10 @@
 
 Dataloader::Dataloader(const std::string &path,
                        const std::vector<std::string> filenames,
-                       const int width, const int height, const int n_channels,
-                       const int num_images, const int batch_size,
-                       const bool shuffle): _path(path), _filenames(filenames), _width(width), _height(height),
-      _n_channels(n_channels), _num_images(num_images), _batch_size(batch_size),
-      _shuffle(shuffle),
+                       const int width, const int height, const int num_images,
+                       const int batch_size, const bool shuffle)
+    : _path(path), _filenames(filenames), _width(width), _height(height),
+      _num_images(num_images), _batch_size(batch_size), _shuffle(shuffle),
       num_batches((_num_images + _batch_size - 1) / _batch_size),
       _current_batch_data(
           batch_size,
@@ -76,40 +75,35 @@ Eigen::MatrixXf &Dataloader::get_batch() {
 
 bool Dataloader::save_batch_image(const Eigen::MatrixXf &batch, int batch_index,
                                   const std::string &output_path) {
-  if (batch_index < 0 || batch_index >= _batch_size) {
-    std::cerr << "Error: batch_index " << batch_index
-              << " out of bounds. Batch size: " << _batch_size << std::endl;
+  if (batch_index < 0 || batch_index >= batch.rows()) {
+    std::cerr << "Error: batch_index out of bounds\n";
     return false;
   }
 
-  if (batch.rows() != _batch_size || batch.cols() != _width * _height) {
-    std::cerr << "Error: Batch dimensions mismatch. Expected (" << _batch_size
-              << ", " << _width * _height << "), got (" << batch.rows() << ", "
-              << batch.cols() << ")" << std::endl;
+  int expected_cols = _width * _height * _n_channels;
+  if (batch.cols() != expected_cols) {
+    std::cerr << "Error: Batch dimensions mismatch. Expected cols = "
+              << expected_cols << " got " << batch.cols() << "\n";
     return false;
   }
 
-  // Extract the image data from the batch
-  std::vector<unsigned char> image_data(_width * _height);
+  std::vector<unsigned char> image_data(expected_cols);
 
-  for (int i = 0; i < _width * _height; ++i) {
-    float pixel_value = batch(batch_index, i);
-    // De-normalize (assuming original normalization was /255.0f)
-    pixel_value = std::clamp(pixel_value, 0.0f, 1.0f);
-    image_data[i] = static_cast<unsigned char>(pixel_value * 255.0f);
+  for (int i = 0; i < expected_cols; ++i) {
+    float v = std::clamp(batch(batch_index, i), 0.0f, 1.0f);
+    image_data[i] = static_cast<unsigned char>(v * 255.0f);
   }
 
-  // Save using stb_image_write
-  int result = stbi_write_png(output_path.c_str(), _width, _height,
-                              1, // grayscale
-                              image_data.data(),
-                              _width); // stride
+  int stride = _width * _n_channels;
 
-  if (result == 0) {
-    std::cerr << "Error saving image to: " << output_path << std::endl;
+  int result = stbi_write_png(output_path.c_str(), _width, _height, _n_channels,
+                              image_data.data(), stride);
+
+  if (!result) {
+    std::cerr << "Error saving image to: " << output_path << "\n";
     return false;
   }
 
-  std::cout << "Saved image to: " << output_path << std::endl;
+  std::cout << "Saved image to: " << output_path << "\n";
   return true;
 }
