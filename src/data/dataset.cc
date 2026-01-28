@@ -20,30 +20,36 @@ Dataloader::Dataloader(const std::string &path,
           height * width) // Ceiling division to avoid missing the last batch
 {
 
-  if (_num_images > _filenames.size()) {
+  if (_num_images > _filenames.size())
+  {
     std::cerr << "Number of images is greater than the number of filenames"
               << std::endl;
     exit(1);
   }
 
-  if (_shuffle) {
+  if (_shuffle)
+  {
     std::shuffle(std::begin(_filenames), std::end(_filenames),
                  autoencoder_random_generator);
   }
 
   _full_paths.reserve(_filenames.size());
-  for (auto &fname : _filenames) {
+  for (auto &fname : _filenames)
+  {
     _full_paths.push_back(_path + "/" + fname + _extension);
   }
 }
 
-Eigen::MatrixXf &Dataloader::get_batch() {
+Eigen::MatrixXf &Dataloader::get_batch()
+{
 #pragma omp parallel for
-  for (int b = 0; b < _batch_size; ++b) {
+  for (int b = 0; b < _batch_size; ++b)
+  {
     int index =
         _batch_start_index + b; // Get the correct image index for the batch
 
-    if (index >= _filenames.size()) {
+    if (index >= _filenames.size())
+    {
       continue;
     }
 
@@ -53,7 +59,8 @@ Eigen::MatrixXf &Dataloader::get_batch() {
     unsigned char *data =
         stbi_load(filename.c_str(), &w, &h, &n, 0);
 
-    if (!data) {
+    if (!data)
+    {
 #pragma omp critical
       std::cerr << "Error loading image: " << _filenames[index]
                 << "Line: " << __LINE__ << std::endl;
@@ -61,7 +68,8 @@ Eigen::MatrixXf &Dataloader::get_batch() {
     }
 
     // Copy the flattened image data directly into _current_batch_data(b)
-    for (int i = 0; i < _height * _width; ++i) {
+    for (int i = 0; i < _height * _width; ++i)
+    {
       _current_batch_data(b, i) =
           static_cast<float>(data[i]) / 255.0f; // Normalize the pixel value
     }
@@ -74,14 +82,17 @@ Eigen::MatrixXf &Dataloader::get_batch() {
 }
 
 bool Dataloader::save_batch_image(const Eigen::MatrixXf &batch, int batch_index,
-                                  const std::string &output_path) {
-  if (batch_index < 0 || batch_index >= batch.rows()) {
+                                  const std::string &output_path)
+{
+  if (batch_index < 0 || batch_index >= batch.rows())
+  {
     std::cerr << "Error: batch_index out of bounds\n";
     return false;
   }
 
   int expected_cols = _width * _height * _n_channels;
-  if (batch.cols() != expected_cols) {
+  if (batch.cols() != expected_cols)
+  {
     std::cerr << "Error: Batch dimensions mismatch. Expected cols = "
               << expected_cols << " got " << batch.cols() << "\n";
     return false;
@@ -89,7 +100,8 @@ bool Dataloader::save_batch_image(const Eigen::MatrixXf &batch, int batch_index,
 
   std::vector<unsigned char> image_data(expected_cols);
 
-  for (int i = 0; i < expected_cols; ++i) {
+  for (int i = 0; i < expected_cols; ++i)
+  {
     float v = std::clamp(batch(batch_index, i), 0.0f, 1.0f);
     image_data[i] = static_cast<unsigned char>(v * 255.0f);
   }
@@ -99,7 +111,8 @@ bool Dataloader::save_batch_image(const Eigen::MatrixXf &batch, int batch_index,
   int result = stbi_write_png(output_path.c_str(), _width, _height, _n_channels,
                               image_data.data(), stride);
 
-  if (!result) {
+  if (!result)
+  {
     std::cerr << "Error saving image to: " << output_path << "\n";
     return false;
   }
