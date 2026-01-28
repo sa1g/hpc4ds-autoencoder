@@ -2,7 +2,8 @@
 
 #include "model.hh"
 
-TEST(ModelTest, GetWeights) {
+TEST(ModelTest, GetWeights)
+{
     AutoencoderModel model(10, 784, 64, 784); // batch_size, input_dim, hidden_dim, output_dim
     auto weights = model.get_weights();
 
@@ -19,7 +20,8 @@ TEST(ModelTest, GetWeights) {
     EXPECT_EQ(weights["decoder_w"].cols(), 64);
 }
 
-TEST(ModelTest, SetWeights) {
+TEST(ModelTest, SetWeights)
+{
     AutoencoderModel model(10, 784, 64, 784);
     auto original_weights = model.get_weights();
 
@@ -38,8 +40,8 @@ TEST(ModelTest, SetWeights) {
     EXPECT_TRUE(original_weights["decoder_b"].isApprox(new_weights["decoder_b"]));
 }
 
-
-TEST(ModelTest, SaveLoadWeights) {
+TEST(ModelTest, SaveLoadWeights)
+{
     AutoencoderModel model(10, 784, 64, 784);
     auto original_weights = model.get_weights();
     original_weights["encoder_w"].setRandom();
@@ -63,12 +65,14 @@ TEST(ModelTest, SaveLoadWeights) {
     std::remove(path.c_str());
 }
 
-TEST(ModelTest, LoadNonexistentFile) {
+TEST(ModelTest, LoadNonexistentFile)
+{
     AutoencoderModel model(10, 784, 64, 784);
     EXPECT_THROW(model.load_weights("nonexistent_file.bin"), std::runtime_error);
 }
 
-TEST(ModelTest, WeightManagementIntegration) {
+TEST(ModelTest, WeightManagementIntegration)
+{
     AutoencoderModel model1(10, 784, 64, 784);
     AutoencoderModel model2(10, 784, 64, 784);
 
@@ -97,5 +101,3 @@ TEST(ModelTest, WeightManagementIntegration) {
     // Clean up
     std::remove(path.c_str());
 }
-
-

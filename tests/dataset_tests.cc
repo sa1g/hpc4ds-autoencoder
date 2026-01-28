@@ -7,9 +7,11 @@
 #include "stb_image.h"
 #include "stb_image_write.h"
 
-class Dataloader2DTest : public ::testing::Test {
+class Dataloader2DTest : public ::testing::Test
+{
 protected:
-  void SetUp() override {
+  void SetUp() override
+  {
     // Create mock filenames
     filenames = {"image1", "image2", "image3", "image4", "image5"};
     width = 20;
@@ -20,24 +22,29 @@ protected:
     shuffle = false;
 
     // Create mock images and save them to disk
-    for (const auto &filename : filenames) {
+    for (const auto &filename : filenames)
+    {
       std::string filepath = path + "/" + filename + ".png";
       std::vector<unsigned char> image = create_mock_image(width, height);
       stbi_write_png(filepath.c_str(), width, height, 1, image.data(), 0);
     }
   }
 
-  void TearDown() override {
+  void TearDown() override
+  {
     // Clean up mock images
-    for (const auto &filename : filenames) {
+    for (const auto &filename : filenames)
+    {
       std::string filepath = path + "/" + filename + ".png";
       std::remove(filepath.c_str());
     }
   }
 
-  std::vector<unsigned char> create_mock_image(int width, int height) {
+  std::vector<unsigned char> create_mock_image(int width, int height)
+  {
     std::vector<unsigned char> image(width * height);
-    for (int i = 0; i < width * height; ++i) {
+    for (int i = 0; i < width * height; ++i)
+    {
       image[i] =
           static_cast<unsigned char>(i % 256); // Fill wit hdummy pixel values
     }
@@ -54,7 +61,8 @@ protected:
 };
 
 // test constructor
-TEST_F(Dataloader2DTest, ConstructorTest) {
+TEST_F(Dataloader2DTest, ConstructorTest)
+{
   Dataloader dataloader(path, filenames, width, height, num_images,
                         batch_size, shuffle);
 
@@ -70,7 +78,8 @@ TEST_F(Dataloader2DTest, ConstructorTest) {
 }
 
 // test get_batch
-TEST_F(Dataloader2DTest, GetBatchTest) {
+TEST_F(Dataloader2DTest, GetBatchTest)
+{
   Dataloader dataloader(path, filenames, width, height, num_images,
                         batch_size, shuffle);
 
@@ -82,25 +91,29 @@ TEST_F(Dataloader2DTest, GetBatchTest) {
   EXPECT_EQ(batch.cols(), width * height);
 
   // Check the values of the first image in the batch
-  for (int i = 0; i < width * height; ++i) {
+  for (int i = 0; i < width * height; ++i)
+  {
     EXPECT_FLOAT_EQ(batch(0, i), static_cast<float>(i % 256) / 255.0f);
   }
 
   // Check the values of the 2nd image in the batch
-  for (int i = 0; i < width * height; ++i) {
+  for (int i = 0; i < width * height; ++i)
+  {
     EXPECT_FLOAT_EQ(batch(1, i), static_cast<float>(i % 256) / 255.0f);
   }
 }
 
 // test iterator
-TEST_F(Dataloader2DTest, IteratorTest) {
+TEST_F(Dataloader2DTest, IteratorTest)
+{
   Dataloader dataloader(path, filenames, width, height, num_images,
                         batch_size, shuffle);
 
   std::cerr << dataloader.get_num_batches() << std::endl;
 
   int batch_count = 0;
-  for (auto it = dataloader.begin(); it != dataloader.end(); ++it) {
+  for (auto it = dataloader.begin(); it != dataloader.end(); ++it)
+  {
     Eigen::MatrixXf &batch = *it;
     EXPECT_EQ(batch.rows(), batch_size);
     EXPECT_EQ(batch.cols(), width * height);
@@ -111,15 +124,18 @@ TEST_F(Dataloader2DTest, IteratorTest) {
 }
 
 // test shuffling
-TEST_F(Dataloader2DTest, ShuffleTest) {
+TEST_F(Dataloader2DTest, ShuffleTest)
+{
   bool shuffle = true;
   Dataloader dataloader(path, filenames, width, height, num_images,
                         batch_size, shuffle);
 
   // Check if filenames are shuffled
   bool is_shuffled = false;
-  for (size_t i = 0; i < filenames.size(); ++i) {
-    if (dataloader.get_filenames()[i] != filenames[i]) {
+  for (size_t i = 0; i < filenames.size(); ++i)
+  {
+    if (dataloader.get_filenames()[i] != filenames[i])
+    {
       is_shuffled = true;
       break;
     }
@@ -127,7 +143,8 @@ TEST_F(Dataloader2DTest, ShuffleTest) {
   EXPECT_TRUE(is_shuffled);
 }
 
-TEST_F(Dataloader2DTest, SaveImageTest) {
+TEST_F(Dataloader2DTest, SaveImageTest)
+{
   Dataloader dataloader(path, filenames, width, height, num_images,
                         batch_size, shuffle);
 
@@ -171,7 +188,8 @@ TEST_F(Dataloader2DTest, SaveImageTest) {
   float tolerance =
       1.0f / 255.0f; // Allow for 1 pixel value difference due to quantization
 
-  for (int i = 0; i < width * height; i++) {
+  for (int i = 0; i < width * height; i++)
+  {
     // Convert saved pixel from [0, 255] to [0, 1] for comparison
     float saved_pixel = img_data[i] / 255.0f;
     float original_pixel = original_pixels[i];
@@ -191,7 +209,8 @@ TEST_F(Dataloader2DTest, SaveImageTest) {
   // 5. Optional: Compare histogram statistics
   float original_mean = original_pixels.mean();
   float saved_mean = 0.0f;
-  for (int i = 0; i < width * height; i++) {
+  for (int i = 0; i < width * height; i++)
+  {
     saved_mean += img_data[i] / 255.0f;
   }
   saved_mean /= (width * height);
@@ -206,7 +225,8 @@ TEST_F(Dataloader2DTest, SaveImageTest) {
   std::filesystem::remove(test_image_path);
 
   // 7. Additional verification: Test multiple images in batch
-  for (int i = 0; i < std::min(3, batch_size); i++) {
+  for (int i = 0; i < std::min(3, batch_size); i++)
+  {
     std::string multi_img_path = "test_img_" + std::to_string(i) + ".png";
     dataloader.save_batch_image(batch, i, multi_img_path);
 

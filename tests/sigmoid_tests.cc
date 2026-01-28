@@ -16,7 +16,7 @@ TEST(SigmoidLayerTest, ForwardPass)
     Eigen::MatrixXf output = sigmoid.forward(input);
 
     Eigen::MatrixXf expected_output(2, 3);
-    expected_output <<  0.26894142137, 0.88079707797788, 0.047425873177567, 0.98201379003791, 0.0066928509242849, 0.99752737684337;
+    expected_output << 0.26894142137, 0.88079707797788, 0.047425873177567, 0.98201379003791, 0.0066928509242849, 0.99752737684337;
 
     EXPECT_TRUE(output.isApprox(expected_output));
 }

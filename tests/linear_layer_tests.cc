@@ -129,7 +129,7 @@ protected:
 TEST_F(LinearTest, BackwardComputesCorrectGradients)
 {
     Eigen::MatrixXf input(2, input_dim);
-    input << 1.0, 2.0, 3.0, 
+    input << 1.0, 2.0, 3.0,
         4.0, 5.0, 6.0;
 
     Eigen::MatrixXf grad_output(2, output_dim);
