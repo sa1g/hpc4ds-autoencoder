@@ -4,6 +4,8 @@ project(autoencoder)
 
 # Options
 option(WITH_OPENMP "Enable OpenMP" OFF)
+option(WITH_MPI "Enable MPI support" OFF)
+option(DATASET_NAME "Set dataset name, either `mnist` or `svhn`" "mnist")
 # option(WITH_EIGEN_PARALLEL "Enable Eigen parallelization" OFF)
 
 # Set standard to C++20
@@ -11,6 +13,9 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_BUILD_PARALLEL_LEVEL 6)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+set(EIGEN_USE_OPENMP False)
+
 
 # Set build type to RelWithDebInfo if not specified
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -26,8 +31,7 @@ if(WITH_OPENMP)
   find_package(OpenMP REQUIRED)
 endif()
 
-option(WITH_MPI "Enable MPI support" OFF)
-option(DATASET_NAME "Set dataset name, either `mnist` or `svhn`" "mnist")
+
 
 # -----
 # MPI if enabled
@@ -124,9 +128,13 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/src)
 add_executable(${PROJECT_NAME} main.cc)
 
 if(WITH_OPENMP)
-    add_compile_options(-fopenmp)
     target_link_libraries(${PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX)
-    set_property(TARGET ${PROJECT_NAME} PROPERTY POSITION_INDEPENDENT_CODE ON)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE EIGEN_USE_OPENMP)
+
+    target_link_libraries(autoencoder_lib PRIVATE OpenMP::OpenMP_CXX)
+    target_compile_definitions(autoencoder_lib PRIVATE EIGEN_USE_OPENMP)
+    # target_link_libraries(${PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX)
+    # set_property(TARGET ${PROJECT_NAME} PROPERTY POSITION_INDEPENDENT_CODE ON)
 endif()
 
 # if(WITH_EIGEN_PARALLEL)
@@ -153,7 +161,7 @@ target_link_libraries(
 
 if(WITH_MPI)
   target_link_libraries(${PROJECT_NAME} PRIVATE MPI::MPI_CXX)
-  target_compile_definitions(${PROJECT_NAME} PRIVATE USE_MPI DATASET_NAME="${DATASET_NAME}") 
+  target_compile_definitions(${PROJECT_NAME} PRIVATE USE_MPI EIGEN_USE_OPENMP DATASET_NAME="${DATASET_NAME}") 
 endif()
 
 

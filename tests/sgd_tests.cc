@@ -1,6 +1,9 @@
 #include <gtest/gtest.h>
 #include <Eigen/Dense>
 
+// This benchmark/test is a self-contained version of the
+// sgd.hh functionality. It's pure trash.
+
 // Define a simple layer structure for testing
 template <size_t input_dim, size_t output_dim>
 struct SimpleLayer
@@ -114,7 +117,7 @@ TEST_F(SGDTest, MultipleLayersUpdate)
     auto grad_bias2 = layer2.grad_bias;
 
     // Apply SGD to multiple layers
-    sgd(learning_rate, layer1, layer2); // Fixed: learning_rate is now the first argument
+    sgd(learning_rate, layer1, layer2);
 
     // Verify weights and biases are updated correctly for layer1
     for (int i = 0; i < layer1.weights.rows(); ++i)

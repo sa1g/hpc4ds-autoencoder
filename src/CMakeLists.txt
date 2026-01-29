@@ -39,5 +39,5 @@ endif()
 
 if(WITH_MPI)
   target_link_libraries(autoencoder_lib PUBLIC MPI::MPI_CXX)
-  target_compile_definitions(autoencoder_lib PRIVATE USE_MPI)
+  target_compile_definitions(autoencoder_lib PRIVATE USE_MPI EIGEN_USE_OPENMP)
 endif()
