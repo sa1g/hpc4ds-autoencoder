@@ -1,6 +1,11 @@
 set(BENCHMARK_SOURCES
-    benchmark0.cc
-    benchmark1.cc
+    b_dataloader.cc
+    b_linear.cc
+    b_mse.cc
+    b_relu.cc
+    b_sgd.cc
+    b_sigmoid.cc
+    b_train.cc
     # Add more benchmarks here...
 )
 
@@ -15,5 +20,11 @@ foreach(SOURCE_FILE ${BENCHMARK_SOURCES})
         Eigen3::Eigen         
     )
 
+    if(WITH_OPENMP)
+        target_link_libraries(${EXEC_NAME} PRIVATE OpenMP::OpenMP_CXX)
+        target_compile_definitions(${EXEC_NAME} PRIVATE EIGEN_USE_OPENMP)
+    endif()
+
     add_test(NAME ${EXEC_NAME} COMMAND ${EXEC_NAME})
 endforeach()
+
