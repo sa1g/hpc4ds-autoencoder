@@ -43,6 +43,7 @@ data/svhn/
 # Executables
 *.exe
 *.out
+*.err
 *.app
 cpp_env.sif
 *.sif

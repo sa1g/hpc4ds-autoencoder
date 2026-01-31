@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#PBS -l select=1:ncpus=1:mem=16gb
+#PBS -l select=1:ncpus=4:mem=16gb
 #PBS -q short_cpuQ
 #PBS -l walltime=00:30:00
 
@@ -13,5 +13,5 @@ module load openmpi-4.0.4
 
 cd hpc4ds-autoencoder
 
-singularity exec singularity.sif cmake -S . -B build -DWITH_MPI=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo
+singularity exec singularity.sif cmake -S . -B build -DWITH_MPI=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DDATASET_NAME=mnist
 singularity exec singularity.sif cmake --build build/ -j$(nproc)

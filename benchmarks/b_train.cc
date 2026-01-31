@@ -25,7 +25,7 @@ constexpr size_t BATCH_SIZE = 256;
 
 static void DoSetup(const benchmark::State &state)
 {
-    omp_set_num_threads(state.threads());
+    // omp_set_num_threads(state.threads());
 
     // Create mock filenames
     std::vector<std::string> filenames;

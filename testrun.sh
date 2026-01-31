@@ -2,7 +2,7 @@
 
 #PBS -l select=4:ncpus=4:mpiprocs=4:mem=16gb
 #PBS -l place=scatter
-#PBS -l walltime=02:00:00
+#PBS -l walltime=06:00:00
 
 #PBS -q short_cpuQ
 
