@@ -1,7 +1,6 @@
 #include <vector>
 #include <string>
 
-// TODO: remove this one
 #ifdef USE_MPI
 #include <mpi.h>
 #endif

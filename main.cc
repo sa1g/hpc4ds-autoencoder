@@ -1,7 +1,6 @@
 #include <iostream>
 #include <string_view>
 
-// TODO: remove this one
 #ifdef USE_MPI
 #include <mpi.h>
 #endif
@@ -15,15 +14,19 @@
 
 int main(int argc, char *argv[]) {
 
-  // MPI initialization blocks
+  int my_rank = 0;
+  int comm_sz = 1;
+  
+  #ifdef USE_MPI
 
-  int my_rank;
-  int comm_sz;
+  // MPI initialization blocks
 
   MPI_Init(NULL, NULL);
 
   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
+
+  #endif
 
   // Autoencoder code
   const experiment_config config = {
@@ -69,8 +72,13 @@ int main(int argc, char *argv[]) {
 
   std::cout << "Done!" << std::endl;
 
+
+  #ifdef USE_MPI
+
   // MPI teardown
   MPI_Finalize();
+
+  #endif
 
   return 0;
 }

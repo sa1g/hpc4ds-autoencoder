@@ -9,7 +9,6 @@
 #include <iostream>
 #include <string>
 
-// TODO: remove this one
 #ifdef USE_MPI
 #include <mpi.h>
 #endif
@@ -29,7 +28,6 @@ void auto_worker(const experiment_config &config,
                              test_filenames.size(), config.batch_size, false);
 
   // -- MODEL, CRITERION SETUP
-
   AutoencoderModel model{config.batch_size, config.input_dim, config.hidden_dim,
                          config.output_dim};
   MSE criterion{config.batch_size, config.input_dim};
@@ -39,7 +37,7 @@ void auto_worker(const experiment_config &config,
 
   std::string logger_path = "../runs/" + experiment_name + "_" +
                             std::to_string(worker_id) + "_" +
-                            timestamp; //"/tfevents.pb";
+                            timestamp;
   create_directory_if_not_exists(logger_path);
 
   TensorBoardLogger logger(logger_path + "/tfevents.pb");
@@ -55,45 +53,42 @@ void auto_worker(const experiment_config &config,
 
     logger.add_scalar("train_loss", epoch, train_loss);
     logger.add_scalar("eval_loss", epoch, eval_loss);
-    // break;
   }
 
-  // Averaging weights before testing
+  #ifdef USE_MPI
+  // ---- WEIGHT AVERAGING (only if MPI + more than 1 process)
+  if (world_size > 1) {
+    auto local_weights = model.get_weights();
+    auto averaged_weights = local_weights;
 
-  // 1. get local weights
-  auto local_weights = model.get_weights();
-  auto averaged_weights = local_weights; // create same structure
+    for (auto &kv : local_weights) {
+      auto &name = kv.first;
+      auto &mat = kv.second;
 
-  for (auto &kv : local_weights) {
-    auto &name = kv.first;
-    auto &mat = kv.second;
+      int count = mat.rows() * mat.cols();
+      std::vector<float> sendbuf(mat.data(), mat.data() + count);
+      std::vector<float> recvbuf(count);
 
-    // flatten matrix
-    int count = mat.rows() * mat.cols();
-    std::vector<float> sendbuf(mat.data(), mat.data() + count);
-    std::vector<float> recvbuf(count);
+      MPI_Allreduce(sendbuf.data(), recvbuf.data(),
+                    count, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
 
-    // 2. sum all workers' weights
-    MPI_Allreduce(sendbuf.data(), recvbuf.data(), count, MPI_FLOAT, MPI_SUM,
-                  MPI_COMM_WORLD);
+      Eigen::Map<Eigen::MatrixXf> averaged_mat(
+          recvbuf.data(), mat.rows(), mat.cols());
 
-    // 3. convert to Eigen and average
-    Eigen::Map<Eigen::MatrixXf> averaged_mat(recvbuf.data(), mat.rows(),
-                                             mat.cols());
-    averaged_mat /= static_cast<float>(world_size);
+      averaged_mat /= static_cast<float>(world_size);
+      averaged_weights[name] = averaged_mat;
+    }
 
-    averaged_weights[name] = averaged_mat;
+    model.set_weights(averaged_weights);
+
+    if (worker_id == 0) {
+      std::cout << "[MPI] Averaged weights across "
+                << world_size << " workers.\n";
+    }
   }
+  #endif  // USE_MPI
 
-  // 4. set averaged weights into model
-  model.set_weights(averaged_weights);
-
-  if (worker_id == 0) {
-    std::cout << "[MPI] Averaged weights across " << world_size
-              << " workers.\n";
-  }
-
-  // TESTING
+  // -- TESTING (always done locally)
   float test_loss = test("Test: ", test_dataloader, model, criterion);
   logger.add_scalar("test_loss", config.epoch, test_loss);
 }
