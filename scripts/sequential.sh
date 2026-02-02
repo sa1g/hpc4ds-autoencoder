@@ -19,21 +19,14 @@ BUILD_DIR="build_seq_${DATASET_NAME}"
 
 echo "Sequential run – dataset: ${DATASET_NAME}"
 
-# -------------------------
-# Compile
-# -------------------------
+# Check if build exists
 if [ ! -d "$BUILD_DIR" ]; then
-  singularity exec singularity.sif \
-    cmake -S . -B ${BUILD_DIR} \
-      -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-      -DDATASET_NAME=${DATASET_NAME}
-
-  singularity exec singularity.sif \
-    cmake --build ${BUILD_DIR} -j1
+    echo "Error: Directory $BUILD_DIR does not exist. Please run build.sh first."
+    exit 1
 fi
 
 # -------------------------
-# Run (single core)
+# Run
 # -------------------------
 singularity exec singularity.sif \
   ./${BUILD_DIR}/autoencoder

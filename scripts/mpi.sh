@@ -4,6 +4,7 @@
 #PBS -l place=scatter
 #PBS -j oe
 #PBS -N mpi_runs
+#PBS -J 0-3
 
 # Submit with:
 # qsub -l select=8:ncpus=1:mem=16gb -v DATASET_NAME=mnist mpi.sh
@@ -15,52 +16,30 @@ module load openmpi-4.0.4
 
 cd hpc4ds-autoencoder
 
-# -------------------------
-# Dataset
-# -------------------------
 DATASET_NAME=${DATASET_NAME:-mnist}
-echo "Dataset: ${DATASET_NAME}"
-
-# -------------------------
-# Build directory
-# -------------------------
 BUILD_DIR="build_mpi_${DATASET_NAME}"
 
 # -------------------------
-# Compile (only if needed)
+# MPI configurations
 # -------------------------
-if [ ! -d "$BUILD_DIR" ]; then
-  echo "Building MPI version for dataset ${DATASET_NAME}..."
-  singularity exec singularity.sif \
-    cmake -S . -B ${BUILD_DIR} \
-      -DWITH_MPI=ON \
-      -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-      -DDATASET_NAME=${DATASET_NAME}
+NODES_LIST=(1 2 4 8)
+NODES=${NODES_LIST[$PBS_ARRAY_INDEX]}
 
-  singularity exec singularity.sif \
-    cmake --build ${BUILD_DIR} -j1
-else
-  echo "Using existing build: ${BUILD_DIR}"
+echo "MPI job ${PBS_JOBID}: ${NODES} node(s)"
+
+if [ ! -d "$BUILD_DIR" ]; then
+    echo "Error: Directory $BUILD_DIR does not exist. Please run build.sh first."
+    exit 1
 fi
 
 # -------------------------
-# MPI runs
+# Run
 # -------------------------
-MAX_NODES=$(wc -l < "$PBS_NODEFILE")
-
-for NODES in 1 2 4 8; do
-  if [ "$NODES" -le "$MAX_NODES" ]; then
-    echo "Running MPI with ${NODES} node(s)"
-
-    mpirun -np ${NODES} \
-      --mca pml ob1 \
-      --mca btl tcp,self \
-      --mca btl_tcp_if_exclude lo,docker0 \
-      --mca mtl ^psm,psm2 \
-      --mca btl_vader_single_copy_mechanism none \
-      singularity exec singularity.sif \
-      ./${BUILD_DIR}/autoencoder
-  else
-    echo "Skipping ${NODES} nodes (not allocated)"
-  fi
-done
+mpirun -np ${NODES} \
+  --mca pml ob1 \
+  --mca btl tcp,self \
+  --mca btl_tcp_if_exclude lo,docker0 \
+  --mca mtl ^psm,psm2 \
+  --mca btl_vader_single_copy_mechanism none \
+  singularity exec singularity.sif \
+  ./${BUILD_DIR}/autoencoder

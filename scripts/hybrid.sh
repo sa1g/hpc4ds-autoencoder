@@ -1,9 +1,9 @@
 #!/bin/bash
 #PBS -q short_cpuQ
 #PBS -l walltime=06:00:00
-#PBS -l place=scatter
 #PBS -j oe
 #PBS -N hybrid_runs
+#PBS -J 0-15
 
 # Submit with:
 # qsub -l select=8:ncpus=8:mem=16gb -v DATASET_NAME=mnist hybrid.sh
@@ -18,38 +18,46 @@ cd hpc4ds-autoencoder
 DATASET_NAME=${DATASET_NAME:-mnist}
 BUILD_DIR="build_hybrid_${DATASET_NAME}"
 
-echo "Hybrid MPI+OpenMP – dataset: ${DATASET_NAME}"
+# -------------------------
+# Parameter grid
+# -------------------------
+CORES_LIST=(1 2 4 8)
+NODES_LIST=(1 2 4 8)
+
+IDX=${PBS_ARRAY_INDEX}
+
+CORES=${CORES_LIST[$((IDX % 4))]}
+NODES=${NODES_LIST[$((IDX / 4))]}
+
+echo "Hybrid job ${PBS_JOBID}: ${NODES} node(s), ${CORES} OMP threads"
 
 # -------------------------
-# Compile
+# Resource sanity check
 # -------------------------
+REQ_CPUS=$((NODES * CORES))
+ALLOC_CPUS=$(wc -l < "$PBS_NODEFILE")
+
+if [ "$REQ_CPUS" -gt "$ALLOC_CPUS" ]; then
+  echo "Requested ${REQ_CPUS} CPUs, got ${ALLOC_CPUS}. Skipping."
+  exit 0
+fi
+
 if [ ! -d "$BUILD_DIR" ]; then
-  singularity exec singularity.sif \
-    cmake -S . -B ${BUILD_DIR} \
-      -DWITH_MPI=ON \
-      -DWITH_OPENMP=ON \
-      -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-      -DDATASET_NAME=${DATASET_NAME}
-
-  singularity exec singularity.sif \
-    cmake --build ${BUILD_DIR} -j1
+    echo "Error: Directory $BUILD_DIR does not exist. Please run build.sh first."
+    exit 1
 fi
 
 # -------------------------
-# Hybrid runs
+# Run
 # -------------------------
-MAX_NODES=$(wc -l < "$PBS_NODEFILE")
+export OMP_NUM_THREADS=${CORES}
 
-for CORES in 1 2 4 8; do
-  export OMP_NUM_THREADS=${CORES}
-
-  for NODES in 1 2 4 8; do
-    if [ "$NODES" -le "$MAX_NODES" ]; then
-      echo "Hybrid run: ${NODES} node(s), ${CORES} thread(s) per rank"
-
-      mpirun -np ${NODES} \
-        singularity exec singularity.sif \
-        ./${BUILD_DIR}/autoencoder
-    fi
-  done
-done
+# Note: Added MCA parameters for stability, consistent with MPI script
+mpirun -np ${NODES} \
+  --mca pml ob1 \
+  --mca btl tcp,self \
+  --mca btl_tcp_if_exclude lo,docker0 \
+  --mca mtl ^psm,psm2 \
+  --mca btl_vader_single_copy_mechanism none \
+  singularity exec singularity.sif \
+  ./${BUILD_DIR}/autoencoder

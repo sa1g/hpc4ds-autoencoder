@@ -3,6 +3,7 @@
 #PBS -l walltime=06:00:00
 #PBS -j oe
 #PBS -N omp_runs
+#PBS -J 0-3
 
 # Submit with:
 # qsub -l select=1:ncpus=8:mem=16gb -v DATASET_NAME=mnist omp.sh
@@ -16,29 +17,20 @@ cd hpc4ds-autoencoder
 DATASET_NAME=${DATASET_NAME:-mnist}
 BUILD_DIR="build_omp_${DATASET_NAME}"
 
-echo "OpenMP – dataset: ${DATASET_NAME}"
+CORES_LIST=(1 2 4 8)
+CORES=${CORES_LIST[$PBS_ARRAY_INDEX]}
 
-# -------------------------
-# Compile
-# -------------------------
+echo "OpenMP job ${PBS_JOBID}: ${CORES} threads"
+
 if [ ! -d "$BUILD_DIR" ]; then
-  singularity exec singularity.sif \
-    cmake -S . -B ${BUILD_DIR} \
-      -DWITH_OPENMP=ON \
-      -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-      -DDATASET_NAME=${DATASET_NAME}
-
-  singularity exec singularity.sif \
-    cmake --build ${BUILD_DIR} -j1
+    echo "Error: Directory $BUILD_DIR does not exist. Please run build.sh first."
+    exit 1
 fi
 
 # -------------------------
-# Runs
+# Run
 # -------------------------
-for CORES in 1 2 4 8; do
-  echo "Running OpenMP with ${CORES} threads"
-  export OMP_NUM_THREADS=${CORES}
+export OMP_NUM_THREADS=${CORES}
 
-  singularity exec singularity.sif \
-    ./${BUILD_DIR}/autoencoder
-done
+singularity exec singularity.sif \
+  ./${BUILD_DIR}/autoencoder
