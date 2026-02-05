@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -q short_cpuQ
-#PBS -l walltime=00:20:00
+#PBS -l walltime=02:00:00
 #PBS -l select=1:ncpus=4:mem=16gb
 #PBS -j oe
 #PBS -N build_all
