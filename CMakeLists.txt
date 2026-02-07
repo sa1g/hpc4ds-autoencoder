@@ -5,7 +5,8 @@ project(autoencoder)
 # Options
 option(WITH_OPENMP "Enable OpenMP" OFF)
 option(WITH_MPI "Enable MPI support" OFF)
-option(DATASET_NAME "Set dataset name, either `mnist` or `svhn`" "mnist")
+set(DATASET_NAME "mnist" CACHE STRING "Dataset name: mnist or svhn")
+set_property(CACHE DATASET_NAME PROPERTY STRINGS mnist svhn)
 # option(WITH_EIGEN_PARALLEL "Enable Eigen parallelization" OFF)
 
 # Set standard to C++20
@@ -159,9 +160,11 @@ target_link_libraries(
   absl::strings
 )
 
+target_compile_definitions(${PROJECT_NAME} PRIVATE DATASET_NAME="${DATASET_NAME}")
+
 if(WITH_MPI)
   target_link_libraries(${PROJECT_NAME} PRIVATE MPI::MPI_CXX)
-  target_compile_definitions(${PROJECT_NAME} PRIVATE USE_MPI EIGEN_USE_OPENMP DATASET_NAME="${DATASET_NAME}") 
+  target_compile_definitions(${PROJECT_NAME} PRIVATE USE_MPI EIGEN_USE_OPENMP)
 endif()
 
 
@@ -180,4 +183,5 @@ add_subdirectory(tests)
 # Enable Benchmarks
 # ----------------------
 add_subdirectory(benchmarks)
+
 
