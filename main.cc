@@ -1,5 +1,10 @@
 #include <iostream>
 #include <string_view>
+#include <chrono>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 #ifdef USE_MPI
 #include <mpi.h>
@@ -67,8 +72,45 @@ int main(int argc, char *argv[]) {
               << "% of total)" << std::endl;
   }
 
+  // ---- Total time measurement (wall-clock)
+  #ifdef USE_MPI
+  MPI_Barrier(MPI_COMM_WORLD);
+  double t0 = MPI_Wtime();
+  #else
+    #ifdef _OPENMP
+    double t0 = omp_get_wtime();
+    #else
+    auto t0 = std::chrono::steady_clock::now();
+    #endif
+  #endif
+
   auto_worker(config, my_train, my_eval, my_test, "prove", my_rank, comm_sz,
               get_timestamp_string_with_full_micros());
+
+  #ifdef USE_MPI
+  MPI_Barrier(MPI_COMM_WORLD);
+  double t1 = MPI_Wtime();
+  double local = t1 - t0;
+
+  double max_t = 0.0, avg_t = 0.0;
+  MPI_Reduce(&local, &max_t, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+  MPI_Reduce(&local, &avg_t, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+
+  if (my_rank == 0) {
+    avg_t /= comm_sz;
+    std::cout << "Total wall time (avg/max): " << avg_t
+              << " / " << max_t << " s\n";
+  }
+  #else
+    #ifdef _OPENMP
+    double t1 = omp_get_wtime();
+    std::cout << "Total wall time: " << (t1 - t0) << " s\n";
+    #else
+    auto t1 = std::chrono::steady_clock::now();
+    std::chrono::duration<double> dt = t1 - t0;
+    std::cout << "Total wall time: " << dt.count() << " s\n";
+    #endif
+  #endif
 
   std::cout << "Done!" << std::endl;
 
