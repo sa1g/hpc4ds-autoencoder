@@ -16,7 +16,8 @@
  * @param batch_size Size of the batch
  * @param shuffle Shuffle the dataset
  */
-class Dataloader {
+class Dataloader
+{
 private:
   std::vector<std::string> _filenames;
   int _width;
@@ -49,7 +50,8 @@ public:
   bool save_batch_image(const Eigen::MatrixXf &batch, int batch_index,
                         const std::string &output_path);
 
-  class Iterator {
+  class Iterator
+  {
   private:
     Dataloader *_dataloader;
     int _current_batch;
@@ -58,24 +60,29 @@ public:
     Iterator(Dataloader *dataloader, int current_batch)
         : _dataloader(dataloader), _current_batch(current_batch) {}
 
-    Eigen::MatrixXf &operator*() {
+    Eigen::MatrixXf &operator*()
+    {
       // Ensure current_batch is within bounds
-      if (_dataloader->_batch_start_index >= _dataloader->_num_images) {
+      if (_dataloader->_batch_start_index >= _dataloader->_num_images)
+      {
         throw std::out_of_range("Iterator out of range");
       }
 
       int batch_start_index = _current_batch * _dataloader->_batch_size;
-      if (batch_start_index >= _dataloader->_num_images) {
+      if (batch_start_index >= _dataloader->_num_images)
+      {
         throw std::out_of_range("Iterator out of range");
       }
       return _dataloader->get_batch();
     }
 
-    Iterator &operator++() {
+    Iterator &operator++()
+    {
       _dataloader->_batch_start_index += _dataloader->_batch_size;
 
       // If we reach the end of the dataset, reset the batch index
-      if (_dataloader->_batch_start_index >= _dataloader->_num_images) {
+      if (_dataloader->_batch_start_index >= _dataloader->_num_images)
+      {
         _dataloader->_batch_start_index =
             0; // Reset to the start of the dataset
       }
@@ -84,7 +91,8 @@ public:
       return *this;
     }
 
-    bool operator!=(const Iterator &other) const {
+    bool operator!=(const Iterator &other) const
+    {
       return _current_batch != other._current_batch;
     }
   };

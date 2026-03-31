@@ -13,32 +13,31 @@
 // template <size_t max_batch_size, size_t input_dim, size_t output_dim>
 class Linear
 {
-    private:
+private:
     size_t max_batch_size;
     size_t input_dim;
     size_t output_dim;
 
-
-    public:
-
-
+public:
     Eigen::MatrixXf weights;
     Eigen::VectorXf bias;
     Eigen::MatrixXf grad_weights;
     Eigen::VectorXf grad_bias;
     Eigen::MatrixXf grad_input;
-    
-    Linear(size_t max_batch_size, size_t input_dim, size_t output_dim) :
-        max_batch_size(max_batch_size),
-        input_dim(input_dim),
-        output_dim(output_dim),
 
-        weights(output_dim, input_dim),
-        bias(output_dim),
-        grad_weights(output_dim, input_dim),
-        grad_bias(output_dim),
-        grad_input(max_batch_size, input_dim)
-    
+    Linear(
+        size_t max_batch_size,
+        size_t input_dim,
+        size_t output_dim) : max_batch_size(max_batch_size),
+                             input_dim(input_dim),
+                             output_dim(output_dim),
+
+                             weights(output_dim, input_dim),
+                             bias(output_dim),
+                             grad_weights(output_dim, input_dim),
+                             grad_bias(output_dim),
+                             grad_input(max_batch_size, input_dim)
+
     {
         weights.setRandom();
         bias.setRandom();
@@ -55,18 +54,17 @@ class Linear
     Eigen::MatrixXf forward(
         const Eigen::MatrixXf &input) const
     {
-        #ifdef DEBUG
+#ifdef DEBUG
         assert(input.rows() <= max_batch_size && "Batch size exceeds maximum batch size");
         assert(input.cols() == input_dim && "Input dimension mismatch");
-        #endif
+#endif
         Eigen::MatrixXf output(input.rows(), output_dim);
-        
+
         // output = (input * weights.transpose()) + bias.replicate(1, input.rows()).transpose();
-        
+
         output.noalias() = input * weights.transpose();
         output.rowwise() += bias.transpose();
-        
-        
+
         return output;
     }
 

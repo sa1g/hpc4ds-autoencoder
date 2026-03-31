@@ -7,7 +7,7 @@
 
 /**
  * Train the model for 1 epoch on the specified dataset.
- * 
+ *
  * @return Average loss for this epoch.
  */
 float train(std::string text, const experiment_config &config, Dataloader &dataloader, AutoencoderModel &model, MSE &criterion);

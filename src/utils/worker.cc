@@ -18,7 +18,8 @@ void auto_worker(const experiment_config &config,
                  std::vector<std::string> &eval_filenames,
                  std::vector<std::string> &test_filenames,
                  std::string experiment_name, int worker_id, int world_size,
-                 std::string timestamp) {
+                 std::string timestamp)
+{
   // -- DATALOADERS SETUP
   Dataloader train_dataloader(config.train_path, train_filenames, 28, 28,
                               train_filenames.size(), config.batch_size, true);
@@ -43,7 +44,8 @@ void auto_worker(const experiment_config &config,
   TensorBoardLogger logger(logger_path + "/tfevents.pb");
 
   // -- TRAINING
-  for (int epoch = 0; epoch < config.epoch; ++epoch) {
+  for (int epoch = 0; epoch < config.epoch; ++epoch)
+  {
     float train_loss =
         train("Train: ", config, train_dataloader, model, criterion);
 
@@ -55,13 +57,15 @@ void auto_worker(const experiment_config &config,
     logger.add_scalar("eval_loss", epoch, eval_loss);
   }
 
-  #ifdef USE_MPI
+#ifdef USE_MPI
   // ---- WEIGHT AVERAGING (only if MPI + more than 1 process)
-  if (world_size > 1) {
+  if (world_size > 1)
+  {
     auto local_weights = model.get_weights();
     auto averaged_weights = local_weights;
 
-    for (auto &kv : local_weights) {
+    for (auto &kv : local_weights)
+    {
       auto &name = kv.first;
       auto &mat = kv.second;
 
@@ -81,12 +85,13 @@ void auto_worker(const experiment_config &config,
 
     model.set_weights(averaged_weights);
 
-    if (worker_id == 0) {
+    if (worker_id == 0)
+    {
       std::cout << "[MPI] Averaged weights across "
                 << world_size << " workers.\n";
     }
   }
-  #endif  // USE_MPI
+#endif // USE_MPI
 
   // -- TESTING (always done locally)
   float test_loss = test("Test: ", test_dataloader, model, criterion);

@@ -16,11 +16,11 @@ concept IsLinear = requires(T layer) {
 
 /**
  * @brief Stochastic Gradient Descent optimizer for linear layers
- * 
+ *
  * @param layer Linear layer to optimize
  * @param learning_rate Learning rate for the update
- * This function updates the weights and biases of the layer using the gradients computed during the backward pass, and then resets the gradients to zero for the next iteration.   
- * 
+ * This function updates the weights and biases of the layer using the gradients computed during the backward pass, and then resets the gradients to zero for the next iteration.
+ *
  * Note: This function assumes that the gradients have already been computed and stored in the layer's grad_weights and grad_bias members. It also assumes that the weights and biases are stored in the layer's weights and bias members, respectively.
  */
 template <IsLinear Layer>
