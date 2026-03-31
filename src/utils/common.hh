@@ -49,6 +49,12 @@ struct experiment_config
     int epoch;
 };
 
+/**
+ * @brief Create a directory if it does not exist
+ * @param path The path of the directory to create
+ * @return true if the directory exists or was created successfully, false otherwise
+ * @throws std::filesystem::filesystem_error if there's an error accessing the filesystem
+ */
 bool create_directory_if_not_exists(const std::string &path);
 
 std::string get_timestamp_string_with_full_micros();

@@ -3,8 +3,6 @@
 
 #include <Eigen/Dense>
 
-// #include <unsupported/Eigen/CXX11/MatrixXf>
-
 /**
  * @brief Dataloader class - used as iterator you get batches of shape
  * [BATCH_SIZE, HEIGHT * WIDTH]. If there's not enough images, the last batch
