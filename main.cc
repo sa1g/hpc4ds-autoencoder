@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 #include <string_view>
 #include <chrono>
 
@@ -45,6 +46,34 @@ int main(int argc, char *argv[])
       .lr = 0.01f,
       .epoch = 20};
 
+  std::string mode = "seq";
+#ifdef USE_MPI
+#ifdef _OPENMP
+  mode = "hybrid";
+#else
+  mode = "mpi";
+#endif
+#else
+#ifdef _OPENMP
+  mode = "omp";
+#endif
+#endif
+
+  const std::string experiment_name = std::string(DATASET_NAME) + "_" + mode;
+  const std::string timestamp = get_timestamp_string_with_full_micros();
+  const std::string run_path = "runs/" + experiment_name + "_" + timestamp;
+
+  if (my_rank == 0)
+  {
+    std::cout << "Run config: dataset=" << DATASET_NAME
+              << " mode=" << mode
+              << " epochs=" << config.epoch
+              << " batch_size=" << config.batch_size
+              << " lr=" << config.lr
+              << " world_size=" << comm_sz
+              << " output=" << run_path << "\n";
+  }
+
   ///////////////////////////////////////////////////////
 
   std::vector<std::string> filenames = get_filenames(config.train_path);
@@ -85,8 +114,8 @@ int main(int argc, char *argv[])
 #endif _OPENMP
 #endif USE_MPI
 
-  auto_worker(config, my_train, my_eval, my_test, "prove", my_rank, comm_sz,
-              get_timestamp_string_with_full_micros());
+  auto_worker(config, my_train, my_eval, my_test, experiment_name, my_rank,
+              comm_sz, timestamp);
 
 #ifdef USE_MPI
   MPI_Barrier(MPI_COMM_WORLD);
