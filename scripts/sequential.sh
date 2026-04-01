@@ -10,7 +10,7 @@
 
 set -euo pipefail
 
-module load singularity-3.4.0
+
 
 cd hpc4ds-autoencoder
 

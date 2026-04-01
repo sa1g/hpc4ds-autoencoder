@@ -11,7 +11,7 @@
 
 set -euo pipefail
 
-module load singularity-3.4.0
+
 module load openmpi-4.0.4
 
 cd hpc4ds-autoencoder
