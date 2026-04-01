@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -q short_cpuQ
+#PBS -q shortCPUQ
 #PBS -l walltime=06:00:00
 #PBS -j oe
 #PBS -N omp_runs

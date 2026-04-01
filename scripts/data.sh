@@ -3,7 +3,7 @@
 #PBS -l select=1:ncpus=16:mem=16gb
 #PBS -l walltime=2:00:00
 
-#PBS -q short_cpuQ
+#PBS -q shortCPUQ
 
 #PBS -N data
 #PBS -o scripts/data.out
