@@ -63,8 +63,8 @@ float test(std::string text, Dataloader &dataloader, AutoencoderModel &model,
     num_batches++;
     epoch_loss += loss;
 
-    printf("%s batch %i/%i | Loss: %.3f\n", text.c_str(), num_batches,
-           dataloader.get_num_batches(), loss);
+    // printf("%s batch %i/%i | Loss: %.3f\n", text.c_str(), num_batches,
+    //        dataloader.get_num_batches(), loss);
   }
 
   return epoch_loss / dataloader.get_num_batches();
