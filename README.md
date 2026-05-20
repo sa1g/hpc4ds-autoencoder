@@ -44,6 +44,12 @@ we run the project with an "Hybrid MPI" aka MPI Interoperability:
 mpirun -np 1 singularity exec singularity.sif ./build/autoencoder
 ```
 
+Running using MPI + OpenMP on all available threads:
+
+```bash
+OMP_NUM_THREADS=$(nproc) OMP_PROC_BIND=spread OMP_PLACES=cores mpirun --bind-to none -np 1 apptainer exec singularity.sif ./build/autoencoder
+```
+
 https://docs.sylabs.io/guides/3.3/user-guide/mpi.html
 
 ## About
