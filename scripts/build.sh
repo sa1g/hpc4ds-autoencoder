@@ -51,16 +51,16 @@ build_variant() {
 }
 
 # 1. SEQUENTIAL (No extra args, this triggered the error before)
-build_variant "$BUILD_SEQ"
+build_variant "$BUILD_SEQ" -DCMAKE_BUILD_TYPE=Release
 
 # 2. MPI
-build_variant "$BUILD_MPI" -DWITH_MPI=ON
+build_variant "$BUILD_MPI" -DWITH_MPI=ON -DCMAKE_BUILD_TYPE=Release
 
 # 3. OPENMP
-build_variant "$BUILD_OMP" -DWITH_OPENMP=ON
+build_variant "$BUILD_OMP" -DWITH_OPENMP=ON -DCMAKE_BUILD_TYPE=Release
 
 # 4. HYBRID
-build_variant "$BUILD_HYB" -DWITH_MPI=ON -DWITH_OPENMP=ON
+build_variant "$BUILD_HYB" -DWITH_MPI=ON -DWITH_OPENMP=ON -DCMAKE_BUILD_TYPE=Release
 
 echo "----------------------------------------"
 echo "All builds completed."
