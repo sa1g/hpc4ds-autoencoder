@@ -11,8 +11,7 @@
 
 set -euo pipefail
 
-
-module load openmpi-4.0.4
+ml OpenMPI/4.1.6-GCC-13.2.0
 
 cd hpc4ds-autoencoder
 

@@ -93,8 +93,40 @@ void auto_worker(const experiment_config &config,
 
     const float train_loss =
         train("Train: ", config, train_dataloader, model, criterion);
-
     const float eval_loss = test("Eval:", eval_dataloader, model, criterion);
+
+#ifdef USE_MPI
+    // ---- WEIGHT AVERAGING (only if MPI + more than 1 process)
+    if (world_size > 1) {
+      auto local_weights = model.get_weights();
+      auto averaged_weights = local_weights;
+
+      for (auto &kv : local_weights) {
+        auto &name = kv.first;
+        auto &mat = kv.second;
+
+        int count = mat.rows() * mat.cols();
+        std::vector<float> sendbuf(mat.data(), mat.data() + count);
+        std::vector<float> recvbuf(count);
+
+        MPI_Allreduce(sendbuf.data(), recvbuf.data(), count, MPI_FLOAT, MPI_SUM,
+                      MPI_COMM_WORLD);
+
+        Eigen::Map<Eigen::MatrixXf> averaged_mat(recvbuf.data(), mat.rows(),
+                                                 mat.cols());
+
+        averaged_mat /= static_cast<float>(world_size);
+        averaged_weights[name] = averaged_mat;
+      }
+
+      model.set_weights(averaged_weights);
+
+      if (should_print) {
+        std::cout << "[MPI] Averaged weights across " << world_size
+                  << " workers.\n";
+      }
+    }
+#endif // USE_MPI
 
     const auto epoch_end = std::chrono::steady_clock::now();
     const double local_epoch_time_sec =
