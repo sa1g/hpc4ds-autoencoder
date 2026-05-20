@@ -1,7 +1,7 @@
+#include <chrono>
 #include <iostream>
 #include <string>
 #include <string_view>
-#include <chrono>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -18,8 +18,7 @@
 #include "common.hh"
 #include "worker.hh"
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 
   int my_rank = 0;
   int comm_sz = 1;
@@ -63,15 +62,11 @@ int main(int argc, char *argv[])
   const std::string timestamp = get_timestamp_string_with_full_micros();
   const std::string run_path = "runs/" + experiment_name + "_" + timestamp;
 
-  if (my_rank == 0)
-  {
-    std::cout << "Run config: dataset=" << DATASET_NAME
-              << " mode=" << mode
+  if (my_rank == 0) {
+    std::cout << "Run config: dataset=" << DATASET_NAME << " mode=" << mode
               << " epochs=" << config.epoch
-              << " batch_size=" << config.batch_size
-              << " lr=" << config.lr
-              << " world_size=" << comm_sz
-              << " output=" << run_path << "\n";
+              << " batch_size=" << config.batch_size << " lr=" << config.lr
+              << " world_size=" << comm_sz << " output=" << run_path << "\n";
   }
 
   ///////////////////////////////////////////////////////
@@ -81,7 +76,8 @@ int main(int argc, char *argv[])
   // For workloads shared on different nodes, it's important the seed used here
   // stays the same, otherwise the data used in testing might end up in the
   // training data used by some other node
-  auto [train_filenames, eval_filenames] = random_split_filenames(filenames, 20, 42);
+  auto [train_filenames, eval_filenames] =
+      random_split_filenames(filenames, 20, 42);
   std::vector<std::string> test_filenames = get_filenames(config.test_path);
 
   // Separating my portion of the training data to use
@@ -94,8 +90,7 @@ int main(int argc, char *argv[])
   std::vector<std::string> my_test = test_filenames;
 
   // Printing the portion of data we got
-  if (train_filenames.size() > 0)
-  {
+  if (train_filenames.size() > 0) {
     std::cout << "[Rank " << my_rank << "/" << comm_sz << "] Assigned "
               << my_train.size() << " training files ("
               << (int)(1000.0 * my_train.size() / train_filenames.size()) / 10.0
@@ -111,8 +106,8 @@ int main(int argc, char *argv[])
   double t0 = omp_get_wtime();
 #else
   auto t0 = std::chrono::steady_clock::now();
-#endif _OPENMP
-#endif USE_MPI
+#endif // _OPENMP
+#endif // USE_MPI
 
   auto_worker(config, my_train, my_eval, my_test, experiment_name, my_rank,
               comm_sz, timestamp);
@@ -126,11 +121,10 @@ int main(int argc, char *argv[])
   MPI_Reduce(&local, &max_t, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
   MPI_Reduce(&local, &avg_t, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
-  if (my_rank == 0)
-  {
+  if (my_rank == 0) {
     avg_t /= comm_sz;
-    std::cout << "Total wall time (avg/max): " << avg_t
-              << " / " << max_t << " s\n";
+    std::cout << "Total wall time (avg/max): " << avg_t << " / " << max_t
+              << " s\n";
   }
 #else
 #ifdef _OPENMP
@@ -140,8 +134,8 @@ int main(int argc, char *argv[])
   auto t1 = std::chrono::steady_clock::now();
   std::chrono::duration<double> dt = t1 - t0;
   std::cout << "Total wall time: " << dt.count() << " s\n";
-#endif _OPENMP
-#endif USE_MPI
+#endif // _OPENMP
+#endif // USE_MPI
 
   std::cout << "Done!" << std::endl;
 
