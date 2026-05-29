@@ -15,7 +15,8 @@ set -euo pipefail
 cd hpc4ds-autoencoder
 
 DATASET_NAME=${DATASET_NAME:-mnist}
-BUILD_DIR="build_omp_${DATASET_NAME}"
+BUILD_ROOT="./build"
+BUILD_DIR="${BUILD_ROOT}/build_omp_${DATASET_NAME}"
 
 CORES_LIST=(1 2 4 8)
 CORES=${CORES_LIST[$PBS_ARRAY_INDEX]}

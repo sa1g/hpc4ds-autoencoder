@@ -15,7 +15,8 @@ set -euo pipefail
 cd hpc4ds-autoencoder
 
 DATASET_NAME=${DATASET_NAME:-mnist}
-BUILD_DIR="build_seq_${DATASET_NAME}"
+BUILD_ROOT="./build"
+BUILD_DIR="${BUILD_ROOT}/build_seq_${DATASET_NAME}"
 
 echo "Sequential run – dataset: ${DATASET_NAME}"
 

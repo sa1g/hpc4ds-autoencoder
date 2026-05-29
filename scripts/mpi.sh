@@ -16,7 +16,8 @@ ml OpenMPI/4.1.6-GCC-13.2.0
 cd hpc4ds-autoencoder
 
 DATASET_NAME=${DATASET_NAME:-mnist}
-BUILD_DIR="build_mpi_${DATASET_NAME}"
+BUILD_ROOT="./build"
+BUILD_DIR="${BUILD_ROOT}/build_mpi_${DATASET_NAME}"
 
 # -------------------------
 # MPI configurations

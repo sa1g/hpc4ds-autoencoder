@@ -1,7 +1,7 @@
 #!/bin/bash
 #PBS -q shortCPUQ
 #PBS -l walltime=02:00:00
-#PBS -l select=1:ncpus=4:mem=16gb
+#PBS -l select=1:ncpus=16:mem=16gb
 #PBS -j oe
 #PBS -N build_all
 
@@ -9,9 +9,6 @@
 # qsub -v DATASET_NAME=mnist build.sh
 
 set -euo pipefail
-
-
-
 cd hpc4ds-autoencoder
 
 DATASET_NAME=${DATASET_NAME:-mnist}
@@ -22,10 +19,10 @@ BUILD_ROOT="./build"
 mkdir -p "$BUILD_ROOT"
 
 # Define build directories
-BUILD_SEQ="$BUILD_ROOT/build_seq_${DATASET_NAME}"
-BUILD_MPI="$BUILD_ROOT/build_mpi_${DATASET_NAME}"
-BUILD_OMP="$BUILD_ROOT/build_omp_${DATASET_NAME}"
-BUILD_HYB="$BUILD_ROOT/build_hybrid_${DATASET_NAME}"
+BUILD_SEQ="${BUILD_ROOT}/build_seq_${DATASET_NAME}"
+BUILD_MPI="${BUILD_ROOT}/build_mpi_${DATASET_NAME}"
+BUILD_OMP="${BUILD_ROOT}/build_omp_${DATASET_NAME}"
+BUILD_HYB="${BUILD_ROOT}/build_hybrid_${DATASET_NAME}"
 
 # --- Function to build a variant ---
 build_variant() {
@@ -51,7 +48,7 @@ build_variant() {
 
     # Compile
     singularity exec singularity.sif \
-      cmake --build "$dir" -j4
+      cmake --build "$dir" -j16
 }
 
 # 1. SEQUENTIAL (No extra args, this triggered the error before)
