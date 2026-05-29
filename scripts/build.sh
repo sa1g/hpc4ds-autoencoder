@@ -17,11 +17,15 @@ cd hpc4ds-autoencoder
 DATASET_NAME=${DATASET_NAME:-mnist}
 echo "Building for dataset: ${DATASET_NAME}"
 
+# Common build root
+BUILD_ROOT="./build"
+mkdir -p "$BUILD_ROOT"
+
 # Define build directories
-BUILD_SEQ="build_seq_${DATASET_NAME}"
-BUILD_MPI="build_mpi_${DATASET_NAME}"
-BUILD_OMP="build_omp_${DATASET_NAME}"
-BUILD_HYB="build_hybrid_${DATASET_NAME}"
+BUILD_SEQ="$BUILD_ROOT/build_seq_${DATASET_NAME}"
+BUILD_MPI="$BUILD_ROOT/build_mpi_${DATASET_NAME}"
+BUILD_OMP="$BUILD_ROOT/build_omp_${DATASET_NAME}"
+BUILD_HYB="$BUILD_ROOT/build_hybrid_${DATASET_NAME}"
 
 # --- Function to build a variant ---
 build_variant() {
@@ -64,3 +68,4 @@ build_variant "$BUILD_HYB" -DWITH_MPI=ON -DWITH_OPENMP=ON -DCMAKE_BUILD_TYPE=Rel
 
 echo "----------------------------------------"
 echo "All builds completed."
+
