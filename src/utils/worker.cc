@@ -65,6 +65,26 @@ void auto_worker(const experiment_config &config,
     return local_value;
   };
 
+  auto start_wall_clock = [&]() {
+#ifdef USE_MPI
+    if (world_size > 1) {
+      MPI_Barrier(MPI_COMM_WORLD);
+    }
+#endif
+    return std::chrono::steady_clock::now();
+  };
+
+  auto end_wall_clock = [&]() {
+#ifdef USE_MPI
+    if (world_size > 1) {
+      MPI_Barrier(MPI_COMM_WORLD);
+    }
+#endif
+    return std::chrono::steady_clock::now();
+  };
+
+  const auto worker_start = start_wall_clock();
+
   // -- DATALOADERS SETUP
   Dataloader train_dataloader(config.train_path, train_filenames, 28, 28,
                               train_filenames.size(), config.batch_size, true);
@@ -176,7 +196,25 @@ void auto_worker(const experiment_config &config,
   // -- TESTING (always done locally)
   const float test_loss = test("Test: ", test_dataloader, model, criterion);
   const float global_test_loss = average_metric(test_loss);
+
+  const auto worker_end = end_wall_clock();
+  const double local_total_time_sec =
+      std::chrono::duration<double>(worker_end - worker_start).count();
+  const double total_time_sec = max_metric(local_total_time_sec);
+  const double total_train_samples =
+      sum_metric(static_cast<double>(train_filenames.size()));
+  const double total_samples_per_sec =
+      total_time_sec > 0.0 ? total_train_samples / total_time_sec : 0.0;
+
   if (logger) {
     logger->add_scalar("test_loss", config.epoch, global_test_loss);
+    logger->add_scalar("total_time_sec", config.epoch, total_time_sec);
+    logger->add_scalar("total_samples_per_sec", config.epoch,
+                       total_samples_per_sec);
+  }
+
+  if (should_print) {
+    std::cout << "Total worker time=" << total_time_sec
+              << " | total_samples_per_sec=" << total_samples_per_sec << "\n";
   }
 }
