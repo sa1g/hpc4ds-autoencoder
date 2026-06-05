@@ -6,7 +6,7 @@ set(BENCHMARK_SOURCES
     b_sgd.cc
     b_sigmoid.cc
     b_train.cc
-    # Add more benchmarks here...
+    b_communication_many_calls.cc
 )
 
 foreach(SOURCE_FILE ${BENCHMARK_SOURCES})
