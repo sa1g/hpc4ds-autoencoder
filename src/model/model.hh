@@ -19,8 +19,7 @@
  *
  * Have fun! - E
  */
-class AutoencoderModel
-{
+class AutoencoderModel {
 private:
   size_t max_batch_size;
   size_t input_dim;
@@ -53,8 +52,7 @@ public:
    * @param input Input matrix of shape [batch_size, input_dim]
    * @return Output matrix of shape [batch_size, output_dim]
    */
-  Eigen::MatrixXf forward(const Eigen::MatrixXf &input)
-  {
+  Eigen::MatrixXf forward(const Eigen::MatrixXf &input) {
     encoded = encoder.forward(input);
     activated_encoded = encoder_activation.forward(encoded);
     decoded = decoder.forward(activated_encoded);
@@ -66,11 +64,11 @@ public:
    * @brief Backward pass of the autoencoder
    * @param input Input matrix of shape [batch_size, input_dim]
    * @param grad_output Gradient of the loss with respect to the output
-   * @return Gradient of the loss with respect to the input, of shape [batch_size, input_dim]
+   * @return Gradient of the loss with respect to the input, of shape
+   * [batch_size, input_dim]
    */
   Eigen::MatrixXf backward(const Eigen::MatrixXf &input,
-                           const Eigen::MatrixXf &grad_output)
-  {
+                           const Eigen::MatrixXf &grad_output) {
     Eigen::MatrixXf grad_decoded =
         decoder_activation.backward(decoded, grad_output);
     Eigen::MatrixXf grad_hidden =
@@ -85,10 +83,10 @@ public:
   /**
    * @brief Get the weights of the model as a map of string to matrix
    *
-   * @return Map of string to matrix containing the weights and biases of the encoder and decoder
+   * @return Map of string to matrix containing the weights and biases of the
+   * encoder and decoder
    */
-  std::unordered_map<std::string, Eigen::MatrixXf> get_weights()
-  {
+  std::unordered_map<std::string, Eigen::MatrixXf> get_weights() {
     // We have an encoder and a decoder. We need to store both weights and bias
     // std::unordered_map<std::string, Eigen::MatrixXf> weights
 
@@ -101,23 +99,27 @@ public:
   }
 
   /**
+   * UNUSED
+   *
    * @brief Set the weights of the model from a map of string to matrix
    *
-   * @param weights Map of string to matrix containing the weights and biases of the encoder and decoder. The keys should be "encoder_w", "encoder_b", "decoder_w", "decoder_b".
+   * @param weights Map of string to matrix containing the weights and biases of
+   * the encoder and decoder. The keys should be "encoder_w", "encoder_b",
+   * "decoder_w", "decoder_b".
    */
-  void set_weights(std::unordered_map<std::string, Eigen::MatrixXf> weights)
-  {
-    encoder.weights = weights["encoder_w"];
-    encoder.bias = weights["encoder_b"];
+  void
+  set_weights(const std::unordered_map<std::string, Eigen::MatrixXf> &weights) {
+    encoder.weights = weights.at("encoder_w");
+    encoder.bias = weights.at("encoder_b");
     encoder.grad_weights.setZero();
     encoder.grad_bias.setZero();
     encoder.grad_input.setZero();
 
-    decoder.weights = weights["decoder_w"];
-    decoder.bias = weights["decoder_b"];
-    encoder.grad_weights.setZero();
-    encoder.grad_bias.setZero();
-    encoder.grad_input.setZero();
+    decoder.weights = weights.at("decoder_w");
+    decoder.bias = weights.at("decoder_b");
+    decoder.grad_weights.setZero();
+    decoder.grad_bias.setZero();
+    decoder.grad_input.setZero();
   }
 
   /**
@@ -131,26 +133,26 @@ public:
    * - Number of rows (int)
    * - Number of columns (int)
    * - Matrix data (rows * cols * sizeof(float))
-   * The order of the matrices is: encoder weights, encoder bias, decoder weights, decoder bias.
+   * The order of the matrices is: encoder weights, encoder bias, decoder
+   * weights, decoder bias.
    *
-   * This format allows for easy loading of the weights later, as we can read the name and dimensions of each matrix before reading the data.
+   * This format allows for easy loading of the weights later, as we can read
+   * the name and dimensions of each matrix before reading the data.
    *
-   * Note: This function does not handle endianness or different data types, so it should be used in a consistent environment for saving and loading.
+   * Note: This function does not handle endianness or different data types, so
+   * it should be used in a consistent environment for saving and loading.
    *
    * @throws std::runtime_error if the file cannot be opened for writing
    */
-  void save_weights(std::string path)
-  {
+  void save_weights(std::string path) {
     auto weights = get_weights();
     std::ofstream out(path, std::ios::binary);
-    if (!out)
-    {
+    if (!out) {
       throw std::runtime_error("Failed to open file for writing: " + path);
     }
 
     // Write each matrix to the file
-    for (const auto &[name, matrix] : weights)
-    {
+    for (const auto &[name, matrix] : weights) {
       // Write the name (as a null-terminated string)
       out.write(name.c_str(), name.size() + 1);
 
@@ -170,23 +172,21 @@ public:
    * @brief Load the weights of the model from a binary file
    *
    * @param path Path to the file where the weights are saved
-   * @return Map of string to matrix containing the weights and biases of the encoder and decoder
+   * @return Map of string to matrix containing the weights and biases of the
+   * encoder and decoder
    *
    * @throws std::runtime_error if the file cannot be opened for reading
    */
   std::unordered_map<std::string, Eigen::MatrixXf>
-  load_weights(std::string path)
-  {
+  load_weights(std::string path) {
     std::ifstream in(path, std::ios::binary);
-    if (!in)
-    {
+    if (!in) {
       throw std::runtime_error("Failed to open file for reading: " + path);
     }
 
     std::unordered_map<std::string, Eigen::MatrixXf> weights;
 
-    while (in.peek() != EOF)
-    {
+    while (in.peek() != EOF) {
       // Read the name (null-terminated string)
       std::string name;
       std::getline(in, name, '\0');
