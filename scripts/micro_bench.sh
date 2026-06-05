@@ -1,10 +1,10 @@
 #!/bin/bash
 #PBS -q shortCPUQ
 #PBS -l walltime=06:00:00
-#PBS -l select=1:ncpus=8:mem=16gb
+#PBS -l select=1:ncpus=16:mem=16gb
 #PBS -j oe
 #PBS -N micro_bench_runs
-#PBS -J 0-27
+#PBS -J 0-34
 
 # Submit with:
 # qsub -v DATASET_NAME=mnist micro_bench.sh
@@ -15,7 +15,7 @@ set -euo pipefail
 
 BUILD_ROOT="./build"
 DATASET_NAME=${DATASET_NAME:-mnist}
-BUILD_DIR="${BUILD_ROOT}/build_omp_${DATASET_NAME}"
+BUILD_DIR="${BUILD_ROOT}/build_omp_${DATASET_NAME}/benchmarks"
 LOG_DIR="${BUILD_ROOT}/logs"
 
 BENCHMARKS=(
@@ -28,7 +28,7 @@ BENCHMARKS=(
 	b_train
 )
 
-CORES_LIST=(1 2 4 8)
+CORES_LIST=(1 2 4 8 16)
 
 # Default to 0 when not running as a PBS array job
 IDX=${PBS_ARRAY_INDEX:-0}
