@@ -15,7 +15,7 @@ set -euo pipefail
 
 BUILD_ROOT="./build"
 DATASET_NAME=${DATASET_NAME:-mnist}
-BUILD_DIR="${BUILD_ROOT}/build_omp_${DATASET_NAME}/benchmarks"
+BUILD_DIR="${BUILD_ROOT}/build_hybrid_${DATASET_NAME}/benchmarks"
 LOG_DIR="${BUILD_ROOT}/logs"
 
 BENCHMARKS=(

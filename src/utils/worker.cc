@@ -19,6 +19,7 @@
 void update_federated_weights_single_call(AutoencoderModel &model,
                                           int worker_id, int world_size,
                                           bool should_print) {
+#ifdef USE_MPI
   (void)worker_id;
   (void)should_print;
 
@@ -68,10 +69,14 @@ void update_federated_weights_single_call(AutoencoderModel &model,
   offset += model.decoder.weights.size();
   std::memcpy(model.decoder.bias.data(), flat_weights.data() + offset,
               model.decoder.bias.size() * sizeof(float));
+#else
+  return;
+#endif
 }
 
 void update_federated_weights(AutoencoderModel &model, int worker_id,
                               int world_size, bool should_print) {
+#ifdef USE_MPI
   // ---- WEIGHT AVERAGING (only if MPI + more than 1 process)
   if (world_size > 1) {
     auto average_matrix = [world_size](auto &matrix) {
@@ -101,6 +106,9 @@ void update_federated_weights(AutoencoderModel &model, int worker_id,
                 << " workers.\n";
     }
   }
+#else
+  return;
+#endif
 }
 
 // void update_federated_weights(AutoencoderModel &model, int worker_id,

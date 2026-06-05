@@ -1,13 +1,22 @@
-set(BENCHMARK_SOURCES
-    b_dataloader.cc
-    b_linear.cc
-    b_mse.cc
-    b_relu.cc
-    b_sgd.cc
-    b_sigmoid.cc
-    b_train.cc
-    b_communication_many_calls.cc
-)
+set(BENCHMARK_SOURCES)
+
+# Add benchmarks that require OpenMP only when WITH_OPENMP is ON
+if(WITH_OPENMP)
+    list(APPEND BENCHMARK_SOURCES
+        b_dataloader.cc
+        b_linear.cc
+        b_mse.cc
+        b_relu.cc
+        b_sgd.cc
+        b_sigmoid.cc
+        b_train.cc
+    )
+endif()
+
+# Add the communication benchmark only when WITH_MPI is ON
+if(WITH_MPI)
+    list(APPEND BENCHMARK_SOURCES b_communication_many_calls.cc)
+endif()
 
 foreach(SOURCE_FILE ${BENCHMARK_SOURCES})
     get_filename_component(EXEC_NAME ${SOURCE_FILE} NAME_WE)

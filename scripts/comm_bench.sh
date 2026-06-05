@@ -15,7 +15,7 @@ ml OpenMPI/4.1.6-GCC-13.2.0
 cd hpc4ds-autoencoder
 DATASET_NAME=${DATASET_NAME:-mnist}
 BUILD_ROOT="./build"
-BUILD_DIR="${BUILD_ROOT}/build_omp_${DATASET_NAME}/benchmarks"
+BUILD_DIR="${BUILD_ROOT}/build_hybrid_${DATASET_NAME}/benchmarks"
 LOG_DIR="${BUILD_ROOT}/logs"
 
 # -------------------------
