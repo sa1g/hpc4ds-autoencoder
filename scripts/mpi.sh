@@ -36,6 +36,7 @@ fi
 # Run
 # -------------------------
 mpirun -np ${NODES} \
+  --hostfile $PBS_NODEFILE \
   --mca pml ob1 \
   --mca btl tcp,self \
   --mca btl_tcp_if_exclude lo,docker0 \
