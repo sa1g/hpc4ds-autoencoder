@@ -9,9 +9,9 @@ PYTHON_VENV=venv
 # Targets
 
 # Default target
-all: prepare_mnist prepare_svhn process_svhn cleanup
-get_data: prepare_mnist prepare_svhn process_svhn cleanup
 
+all: prepare_mnist process_svhn cleanup
+cleanup: process_svhn
 
 # Prepare the MNIST dataset
 prepare_mnist:
@@ -45,7 +45,7 @@ venv:
 	$(PYTHON_VENV)/bin/pip install -r data/requirements.txt
 
 # Process SVHN images
-process_svhn: venv
+process_svhn: prepare_svhn venv
 	@echo "Processing SVHN training set..."
 	$(PYTHON_VENV)/bin/python3 data/process_svhn.py --mat-file $(DATA_DIR)/train_32x32.mat --output-dir $(DATA_DIR)/svhn/train
 	@echo "Processing SVHN test set..."
@@ -54,7 +54,7 @@ process_svhn: venv
 	$(PYTHON_VENV)/bin/python3 data/process_svhn.py --mat-file $(DATA_DIR)/extra_32x32.mat --output-dir $(DATA_DIR)/svhn/train
 
 # Cleanup the dataset files and virtual environment
-cleanup:
+cleanup: process_svhn
 	@echo "Cleaning up downloaded files..."
 	rm $(DATA_DIR)/train_32x32.mat
 	rm $(DATA_DIR)/test_32x32.mat
