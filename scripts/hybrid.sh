@@ -3,10 +3,10 @@
 #PBS -l walltime=06:00:00
 #PBS -j oe
 #PBS -N hybrid_runs
-#PBS -J 0-15
+#PBS -J 0-24
 
 # Submit with:
-# qsub -l select=8:ncpus=8:mem=16gb -v DATASET_NAME=mnist hybrid.sh
+# qsub -l select=16:ncpus=16:mem=16gb -v DATASET_NAME=mnist hybrid.sh
 
 set -euo pipefail
 
@@ -22,8 +22,8 @@ BUILD_DIR="${BUILD_ROOT}/build_hybrid_${DATASET_NAME}"
 # -------------------------
 # Parameter grid
 # -------------------------
-CORES_LIST=(1 2 4 8)
-NODES_LIST=(1 2 4 8)
+CORES_LIST=(1 2 4 8 16)
+NODES_LIST=(1 2 4 8 16)
 
 IDX=${PBS_ARRAY_INDEX}
 
@@ -32,30 +32,44 @@ NODES=${NODES_LIST[$((IDX / 4))]}
 
 echo "Hybrid job ${PBS_JOBID}: ${NODES} node(s), ${CORES} OMP threads"
 
-# -------------------------
-# Resource sanity check
-# -------------------------
-REQ_CPUS=$((NODES * CORES))
+# # -------------------------
+# # Resource sanity check
+# # -------------------------
+# REQ_CPUS=$((NODES * CORES))
+# ALLOC_CPUS=$(wc -l < "$PBS_NODEFILE")
+
+# if [ "$REQ_CPUS" -gt "$ALLOC_CPUS" ]; then
+#   echo "Requested ${REQ_CPUS} CPUs, got ${ALLOC_CPUS}. Skipping."
+#   exit 0
+# fi
+
+# if [ ! -d "$BUILD_DIR" ]; then
+#     echo "Error: Directory $BUILD_DIR does not exist. Please run build.sh first."
+#     exit 1
+# fi
+
+# # -------------------------
+# # Run
+# # -------------------------
+# export OMP_NUM_THREADS=${CORES}
+
+MPI_RANKS=${NODES}
+OMP_THREADS=${CORES}
+
+export OMP_NUM_THREADS=${OMP_THREADS}
+
+REQ_CPUS=$((MPI_RANKS * OMP_THREADS))
 ALLOC_CPUS=$(wc -l < "$PBS_NODEFILE")
 
-if [ "$REQ_CPUS" -gt "$ALLOC_CPUS" ]; then
-  echo "Requested ${REQ_CPUS} CPUs, got ${ALLOC_CPUS}. Skipping."
-  exit 0
-fi
-
-if [ ! -d "$BUILD_DIR" ]; then
-    echo "Error: Directory $BUILD_DIR does not exist. Please run build.sh first."
+if (( REQ_CPUS > ALLOC_CPUS )); then
+    echo "Need $REQ_CPUS CPUs but only $ALLOC_CPUS allocated"
     exit 1
 fi
-
-# -------------------------
-# Run
-# -------------------------
-export OMP_NUM_THREADS=${CORES}
 
 # Note: Added MCA parameters for stability, consistent with MPI script
 mpirun -np ${NODES} \
   --hostfile $PBS_NODEFILE \
+  --map-by ppr:1:node \ 
   --mca pml ob1 \
   --mca btl tcp,self \
   --mca btl_tcp_if_exclude lo,docker0 \

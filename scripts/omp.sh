@@ -3,10 +3,10 @@
 #PBS -l walltime=06:00:00
 #PBS -j oe
 #PBS -N omp_runs
-#PBS -J 0-3
+#PBS -J 0-4
 
 # Submit with:
-# qsub -l select=1:ncpus=8:mem=16gb -v DATASET_NAME=mnist omp.sh
+# qsub -l select=1:ncpus=16:mem=16gb -v DATASET_NAME=mnist omp.sh
 
 set -euo pipefail
 
@@ -18,7 +18,7 @@ DATASET_NAME=${DATASET_NAME:-mnist}
 BUILD_ROOT="./build"
 BUILD_DIR="${BUILD_ROOT}/build_omp_${DATASET_NAME}"
 
-CORES_LIST=(1 2 4 8)
+CORES_LIST=(1 2 4 8 16)
 CORES=${CORES_LIST[$PBS_ARRAY_INDEX]}
 
 echo "OpenMP job ${PBS_JOBID}: ${CORES} threads"

@@ -18,7 +18,7 @@ DATASET_NAME=${DATASET_NAME:-mnist}
 BUILD_ROOT="./build"
 BUILD_DIR="${BUILD_ROOT}/build_seq_${DATASET_NAME}"
 
-echo "Sequential run – dataset: ${DATASET_NAME}"
+echo "Sequential run - dataset: ${DATASET_NAME}"
 
 # Check if build exists
 if [ ! -d "$BUILD_DIR" ]; then

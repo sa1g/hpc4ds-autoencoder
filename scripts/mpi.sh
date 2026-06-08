@@ -7,7 +7,7 @@
 #PBS -J 0-3
 
 # Submit with:
-# qsub -l select=8:ncpus=1:mem=16gb -v DATASET_NAME=mnist mpi.sh
+# qsub -l select=16:ncpus=1:mem=16gb -v DATASET_NAME=mnist mpi.sh
 
 set -euo pipefail
 
@@ -22,7 +22,7 @@ BUILD_DIR="${BUILD_ROOT}/build_mpi_${DATASET_NAME}"
 # -------------------------
 # MPI configurations
 # -------------------------
-NODES_LIST=(1 2 4 8)
+NODES_LIST=(1 2 4 8 16)
 NODES=${NODES_LIST[$PBS_ARRAY_INDEX]}
 
 echo "MPI job ${PBS_JOBID}: ${NODES} node(s)"
@@ -37,6 +37,7 @@ fi
 # -------------------------
 mpirun -np ${NODES} \
   --hostfile $PBS_NODEFILE \
+  --map-by ppr:1:node \
   --mca pml ob1 \
   --mca btl tcp,self \
   --mca btl_tcp_if_exclude lo,docker0 \

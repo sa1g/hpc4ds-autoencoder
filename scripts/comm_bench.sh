@@ -49,6 +49,7 @@ echo "Logging benchmark results to: ${JSON_FILE}"
 # Run with mpiexec (PBS/Torque's launcher)
 mpirun -np ${NODES} \
     --hostfile $PBS_NODEFILE \
+    --map-by ppr:1:node \
     --mca pml ob1 \
     --mca btl tcp,self \
     --mca btl_tcp_if_exclude lo,docker0 \
