@@ -13,7 +13,6 @@
 #ifndef DATASET_NAME
 #define DATASET_NAME "mnist"
 #endif
-
 #include "common.hh"
 #include "worker.hh"
 
@@ -57,9 +56,25 @@ int main(int argc, char *argv[]) {
 #endif
 #endif
 
+  std::string resource_suffix;
+#ifdef USE_MPI
+  resource_suffix = "_" + std::to_string(comm_sz) +
+                    (comm_sz == 1 ? "node" : "nodes");
+#endif
+#ifdef _OPENMP
+  if (resource_suffix.empty()) {
+    resource_suffix = "_" + std::to_string(omp_get_max_threads()) +
+                      (omp_get_max_threads() == 1 ? "core" : "cores");
+  } else {
+    resource_suffix += "_" + std::to_string(omp_get_max_threads()) +
+                       (omp_get_max_threads() == 1 ? "core" : "cores");
+  }
+#endif
+
   const std::string experiment_name = std::string(DATASET_NAME) + "_" + mode;
   const std::string timestamp = get_timestamp_string_with_full_micros();
-  const std::string run_path = "runs/" + experiment_name + "_" + timestamp;
+  const std::string run_path =
+      "runs/" + experiment_name + resource_suffix + "_" + timestamp;
 
   if (my_rank == 0) {
     std::cout << "Run config: dataset=" << DATASET_NAME << " mode=" << mode
