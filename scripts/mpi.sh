@@ -4,10 +4,10 @@
 #PBS -l place=scatter
 #PBS -j oe
 #PBS -N mpi_runs
-#PBS -J 0-3
+#PBS -J 0-4
 
 # Submit with:
-# qsub -l select=16:ncpus=1:mem=16gb -v DATASET_NAME=mnist mpi.sh
+# qsub -l select=16:ncpus=1:mem=16gb -v DATASET_NAME=mnist scripts/mpi.sh
 
 set -euo pipefail
 
@@ -35,13 +35,20 @@ fi
 # -------------------------
 # Run
 # -------------------------
+
 mpirun -np ${NODES} \
-  --hostfile $PBS_NODEFILE \
-  --map-by ppr:1:node \
-  --mca pml ob1 \
-  --mca btl tcp,self \
-  --mca btl_tcp_if_exclude lo,docker0 \
-  --mca mtl ^psm,psm2 \
-  --mca btl_vader_single_copy_mechanism none \
-  singularity exec singularity.sif \
-  ./${BUILD_DIR}/autoencoder
+    --mca pml ob1 \
+    --mca btl_vader_single_copy_mechanism none \
+    --mca btl_tcp_if_include 192.168.0.0/16 \
+    --mca oob_tcp_if_include 192.168.0.0/16 \
+    --map-by ppr:1:node \
+    --hostfile $PBS_NODEFILE \
+    singularity exec singularity.sif ./${BUILD_DIR}/autoencoder
+
+# mpirun -np ${NODES} \
+#     --hostfile $PBS_NODEFILE \
+#     --map-by ppr:1:node \
+#     --mca btl_tcp_if_include 192.168.0.0/16 \
+#     --mca oob_tcp_if_include 192.168.0.0/16 \
+#     singularity exec singularity.sif \
+#     ./${BUILD_DIR}/autoencoder

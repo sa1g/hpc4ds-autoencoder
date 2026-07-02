@@ -1,0 +1,40 @@
+#!/bin/bash
+#PBS -l walltime=06:00:00
+#PBS -j oe
+
+echo "Uniquely allocated nodes: $(cat $PBS_NODEFILE | sort -u | wc -l)"
+echo "Total cores: $(cat $PBS_NODEFILE | wc -l)"
+echo "Passed NODES variable: $NODES"
+
+ml OpenMPI/4.1.6-GCC-13.2.0
+
+cd $PBS_O_WORKDIR
+DATASET_NAME=${DATASET_NAME:-mnist}
+BUILD_ROOT="build"
+BUILD_DIR="${BUILD_ROOT}/build_hybrid_${DATASET_NAME}"
+LOG_DIR="logs"
+
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+JOB_NAME=${PBS_JOBNAME:-comm_bench}
+RUN_BASE="${JOB_NAME}_${TIMESTAMP}_nnodes_${NODES}"
+
+if [ ! -d "$BUILD_DIR" ]; then
+    echo "Error: Directory $BUILD_DIR does not exist. Please run build.sh first."
+    exit 1
+fi
+
+mkdir -p "${LOG_DIR}"
+RUN_LOG_FILE="${LOG_DIR}/${RUN_BASE}.out"
+
+exec > >(tee -a "${RUN_LOG_FILE}") 2>&1
+
+export OMP_NUM_THREADS=$THREADS
+export OMP_PROC_BIND=true
+export OMP_PLACES=cores
+
+mpirun -np $NODES \
+  --hostfile $PBS_NODEFILE \
+  --map-by ppr:1:node:pe=$THREADS \
+  --bind-to core \
+  singularity exec -B $PBS_O_WORKDIR singularity.sif \
+  ./${BUILD_DIR}/autoencoder

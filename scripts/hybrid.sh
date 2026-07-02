@@ -1,6 +1,7 @@
 #!/bin/bash
 #PBS -q shortCPUQ
 #PBS -l walltime=06:00:00
+#PBS -l place=scatter
 #PBS -j oe
 #PBS -N hybrid_runs
 #PBS -J 0-24
@@ -67,13 +68,19 @@ if (( REQ_CPUS > ALLOC_CPUS )); then
 fi
 
 # Note: Added MCA parameters for stability, consistent with MPI script
+# mpirun -np ${NODES} \
+#     --hostfile $PBS_NODEFILE \
+#     --map-by ppr:1:node \ 
+#     --mca btl_tcp_if_include 192.168.0.0/16 \
+#     --mca oob_tcp_if_include 192.168.0.0/16 \
+#     singularity exec singularity.sif \
+#   ./${BUILD_DIR}/autoencoder
+
 mpirun -np ${NODES} \
-  --hostfile $PBS_NODEFILE \
-  --map-by ppr:1:node \ 
-  --mca pml ob1 \
-  --mca btl tcp,self \
-  --mca btl_tcp_if_exclude lo,docker0 \
-  --mca mtl ^psm,psm2 \
-  --mca btl_vader_single_copy_mechanism none \
-  singularity exec singularity.sif \
-  ./${BUILD_DIR}/autoencoder
+    --mca pml ob1 \
+    --mca btl_vader_single_copy_mechanism none \
+    --mca btl_tcp_if_include 192.168.0.0/16 \
+    --mca oob_tcp_if_include 192.168.0.0/16 \
+    --map-by ppr:1:node \
+    --hostfile $PBS_NODEFILE \
+    singularity exec singularity.sif ./${BUILD_DIR}/autoencoder
