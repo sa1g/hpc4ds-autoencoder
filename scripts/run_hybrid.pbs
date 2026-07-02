@@ -36,5 +36,6 @@ mpirun -np $NODES \
   --hostfile $PBS_NODEFILE \
   --map-by ppr:1:node:pe=$THREADS \
   --bind-to core \
+  --mca pml ob1 \
   singularity exec -B $PBS_O_WORKDIR singularity.sif \
   ./${BUILD_DIR}/autoencoder
