@@ -1,3 +1,4 @@
+
 #ifndef __AUTOENCODER_WORKER_HH__
 #define __AUTOENCODER_WORKER_HH__
 
@@ -7,6 +8,10 @@
 void update_federated_weights_single_call(AutoencoderModel &model,
                                           int worker_id, int world_size,
                                           bool should_print);
+
+void update_federated_weights_reduce_bcast(AutoencoderModel &model,
+                                           int worker_id, int world_size,
+                                           bool should_print);
 
 void update_federated_weights(AutoencoderModel &model, int worker_id,
                               int world_size, bool should_print);
@@ -28,3 +33,4 @@ void auto_worker(const experiment_config &config,
                  std::string timestamp);
 
 #endif // __AUTOENCODER_WORKER_HH__
+

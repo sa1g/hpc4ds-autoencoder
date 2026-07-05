@@ -1,3 +1,4 @@
+
 #include "worker.hh"
 #include "dataset.hh"
 #include "loops.hh"
@@ -9,11 +10,66 @@
 #include <chrono>
 #include <cstring>
 #include <iostream>
+#include <limits>
 #include <memory>
+#include <stdexcept>
 #include <string>
+#include <vector>
 
 #ifdef USE_MPI
 #include <mpi.h>
+#endif
+
+#ifdef USE_MPI
+namespace {
+
+size_t federated_weight_count(const AutoencoderModel &model) {
+  return model.encoder.weights.size() + model.encoder.bias.size() +
+         model.decoder.weights.size() + model.decoder.bias.size();
+}
+
+int checked_mpi_count(size_t count) {
+  if (count > static_cast<size_t>(std::numeric_limits<int>::max())) {
+    throw std::overflow_error("MPI count exceeds INT_MAX");
+  }
+  return static_cast<int>(count);
+}
+
+void pack_federated_weights(const AutoencoderModel &model,
+                            std::vector<float> &flat_weights) {
+  flat_weights.resize(federated_weight_count(model));
+
+  size_t offset = 0;
+  auto append = [&](const auto &matrix) {
+    const size_t count = matrix.size();
+    std::memcpy(flat_weights.data() + offset, matrix.data(),
+                count * sizeof(float));
+    offset += count;
+  };
+
+  append(model.encoder.weights);
+  append(model.encoder.bias);
+  append(model.decoder.weights);
+  append(model.decoder.bias);
+}
+
+void unpack_federated_weights(AutoencoderModel &model,
+                              const std::vector<float> &flat_weights) {
+  size_t offset = 0;
+  auto restore = [&](auto &matrix) {
+    const size_t count = matrix.size();
+    std::memcpy(matrix.data(), flat_weights.data() + offset,
+                count * sizeof(float));
+    offset += count;
+  };
+
+  restore(model.encoder.weights);
+  restore(model.encoder.bias);
+  restore(model.decoder.weights);
+  restore(model.decoder.bias);
+}
+
+} // namespace
 #endif
 
 void update_federated_weights_single_call(AutoencoderModel &model,
@@ -26,29 +82,13 @@ void update_federated_weights_single_call(AutoencoderModel &model,
   if (world_size <= 1)
     return;
 
-  const size_t total_params =
-      model.encoder.weights.size() + model.encoder.bias.size() +
-      model.decoder.weights.size() + model.decoder.bias.size();
-
   thread_local std::vector<float> flat_weights;
-  flat_weights.resize(total_params);
+  pack_federated_weights(model, flat_weights);
 
-  size_t offset = 0;
-  std::memcpy(flat_weights.data() + offset, model.encoder.weights.data(),
-              model.encoder.weights.size() * sizeof(float));
-  offset += model.encoder.weights.size();
-  std::memcpy(flat_weights.data() + offset, model.encoder.bias.data(),
-              model.encoder.bias.size() * sizeof(float));
-  offset += model.encoder.bias.size();
-  std::memcpy(flat_weights.data() + offset, model.decoder.weights.data(),
-              model.decoder.weights.size() * sizeof(float));
-  offset += model.decoder.weights.size();
-  std::memcpy(flat_weights.data() + offset, model.decoder.bias.data(),
-              model.decoder.bias.size() * sizeof(float));
-
+  const size_t total_params = flat_weights.size();
   if (total_params > 0) {
     MPI_Allreduce(MPI_IN_PLACE, flat_weights.data(),
-                  static_cast<int>(flat_weights.size()), MPI_FLOAT, MPI_SUM,
+                  checked_mpi_count(flat_weights.size()), MPI_FLOAT, MPI_SUM,
                   MPI_COMM_WORLD);
   }
 
@@ -57,18 +97,59 @@ void update_federated_weights_single_call(AutoencoderModel &model,
     value *= inv_world;
   }
 
-  offset = 0;
-  std::memcpy(model.encoder.weights.data(), flat_weights.data() + offset,
-              model.encoder.weights.size() * sizeof(float));
-  offset += model.encoder.weights.size();
-  std::memcpy(model.encoder.bias.data(), flat_weights.data() + offset,
-              model.encoder.bias.size() * sizeof(float));
-  offset += model.encoder.bias.size();
-  std::memcpy(model.decoder.weights.data(), flat_weights.data() + offset,
-              model.decoder.weights.size() * sizeof(float));
-  offset += model.decoder.weights.size();
-  std::memcpy(model.decoder.bias.data(), flat_weights.data() + offset,
-              model.decoder.bias.size() * sizeof(float));
+  unpack_federated_weights(model, flat_weights);
+#else
+  return;
+#endif
+}
+
+void update_federated_weights_reduce_bcast(AutoencoderModel &model,
+                                           int worker_id, int world_size,
+                                           bool should_print) {
+#ifdef USE_MPI
+  (void)worker_id;
+
+  if (world_size <= 1)
+    return;
+
+  constexpr int root_rank = 0;
+  int rank = 0;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+  thread_local std::vector<float> flat_weights;
+  thread_local std::vector<float> reduced_weights;
+
+  pack_federated_weights(model, flat_weights);
+  const int count = checked_mpi_count(flat_weights.size());
+  if (count == 0)
+    return;
+
+  if (rank == root_rank) {
+    reduced_weights.resize(flat_weights.size());
+  }
+
+  MPI_Reduce(flat_weights.data(),
+             rank == root_rank ? reduced_weights.data() : nullptr, count,
+             MPI_FLOAT, MPI_SUM, root_rank, MPI_COMM_WORLD);
+
+  if (rank == root_rank) {
+    const float inv_world = 1.0f / static_cast<float>(world_size);
+    for (float &value : reduced_weights) {
+      value *= inv_world;
+    }
+  }
+
+  float *broadcast_buffer =
+      rank == root_rank ? reduced_weights.data() : flat_weights.data();
+  MPI_Bcast(broadcast_buffer, count, MPI_FLOAT, root_rank, MPI_COMM_WORLD);
+
+  unpack_federated_weights(model,
+                           rank == root_rank ? reduced_weights : flat_weights);
+
+  if (should_print) {
+    std::cout << "[MPI] Averaged weights with Reduce+Bcast across "
+              << world_size << " workers.\n";
+  }
 #else
   return;
 #endif
@@ -77,35 +158,8 @@ void update_federated_weights_single_call(AutoencoderModel &model,
 void update_federated_weights(AutoencoderModel &model, int worker_id,
                               int world_size, bool should_print) {
 #ifdef USE_MPI
-  // ---- WEIGHT AVERAGING (only if MPI + more than 1 process)
-  if (world_size > 1) {
-    auto average_matrix = [world_size](auto &matrix) {
-      thread_local std::vector<float> buffer;
-      const size_t count = matrix.size();
-      buffer.resize(count);
-
-      std::memcpy(buffer.data(), matrix.data(), count * sizeof(float));
-      MPI_Allreduce(MPI_IN_PLACE, buffer.data(), static_cast<int>(count),
-                    MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
-
-      const float inv_world = 1.0f / static_cast<float>(world_size);
-      for (float &value : buffer) {
-        value *= inv_world;
-      }
-
-      std::memcpy(matrix.data(), buffer.data(), count * sizeof(float));
-    };
-
-    average_matrix(model.encoder.weights);
-    average_matrix(model.encoder.bias);
-    average_matrix(model.decoder.weights);
-    average_matrix(model.decoder.bias);
-
-    if (should_print) {
-      std::cout << "[MPI] Averaged weights across " << world_size
-                << " workers.\n";
-    }
-  }
+  update_federated_weights_reduce_bcast(model, worker_id, world_size,
+                                        should_print);
 #else
   return;
 #endif
@@ -320,3 +374,4 @@ void auto_worker(const experiment_config &config,
               << " | total_samples_per_sec=" << total_samples_per_sec << "\n";
   }
 }
+
